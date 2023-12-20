@@ -2,6 +2,7 @@ package collector
 
 import (
 	"errors"
+	"fmt"
 	"github.com/akyriako/cloudeye-exporter/logging"
 	"net/http"
 	"strconv"
@@ -152,7 +153,7 @@ func InitConfig(config *CloudConfig) (*Config, error) {
 
 	err := buildClient(&configOptions)
 	if err != nil {
-		logging.Logger.Error("Failed to build client: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to build client: %s", err.Error()))
 		return nil, err
 	}
 
@@ -164,7 +165,7 @@ func getCESClient(c *Config) (*golangsdk.ServiceClient, error) {
 		Region: c.Region,
 	})
 	if clientErr != nil {
-		logging.Logger.Error("Failed to get the NewCESV1 client: %s", clientErr.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to get the NewCESV1 client: %s", clientErr.Error()))
 		return nil, clientErr
 	}
 
@@ -176,7 +177,7 @@ func getELBlient(c *Config) (*golangsdk.ServiceClient, error) {
 		Region: c.Region,
 	})
 	if clientErr != nil {
-		logging.Logger.Error("Failed to get the NewLoadBalancerV2 client: %s", clientErr.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to get the NewLoadBalancerV2 client: %s", clientErr.Error()))
 		return nil, clientErr
 	}
 
@@ -196,12 +197,12 @@ func getBatchMetricData(c *Config, metrics *[]metricdata.Metric,
 
 	ifrom, err := strconv.ParseInt(from, 10, 64)
 	if err != nil {
-		logging.Logger.Error("Failed to Parse from: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to Parse from: %s", err.Error()))
 		return nil, err
 	}
 	ito, err := strconv.ParseInt(to, 10, 64)
 	if err != nil {
-		logging.Logger.Error("Failed to Parse to: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to Parse to: %s", err.Error()))
 		return nil, err
 	}
 	options := metricdata.BatchQueryOpts{
@@ -214,13 +215,13 @@ func getBatchMetricData(c *Config, metrics *[]metricdata.Metric,
 
 	client, err := getCESClient(c)
 	if err != nil {
-		logging.Logger.Error("Failed to get ces client: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to get ces client: %s", err.Error()))
 		return nil, err
 	}
 
 	v, err := metricdata.BatchQuery(client, options).ExtractMetricDatas()
 	if err != nil {
-		logging.Logger.Error("Failed to get metricdata: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to get metricdata: %s", err.Error()))
 		return nil, err
 	}
 
@@ -230,19 +231,19 @@ func getBatchMetricData(c *Config, metrics *[]metricdata.Metric,
 func getAllMetric(client *Config, namespace string) (*[]metrics.Metric, error) {
 	c, err := getCESClient(client)
 	if err != nil {
-		logging.Logger.Error("Get CES client error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Get CES client error: %s", err.Error()))
 		return nil, err
 	}
 	limit := 1000
 	allpages, err := metrics.List(c, metrics.ListOpts{Namespace: namespace, Limit: &limit}).AllPages()
 	if err != nil {
-		logging.Logger.Error("Get all metric all pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Get all metric all pages error: %s", err.Error()))
 		return nil, err
 	}
 
 	v, err := metrics.ExtractAllPagesMetrics(allpages)
 	if err != nil {
-		logging.Logger.Error("Get all metric pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Get all metric pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -257,13 +258,13 @@ func getAllLoadBalancer(client *Config) (*[]loadbalancers.LoadBalancer, error) {
 
 	allPages, err := loadbalancers.List(c, loadbalancers.ListOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List load balancer error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List load balancer error: %s", err.Error()))
 		return nil, err
 	}
 
 	allLoadbalancers, err := loadbalancers.ExtractLoadBalancers(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract load balancer pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract load balancer pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -278,13 +279,13 @@ func getAllListener(client *Config) (*[]listeners.Listener, error) {
 
 	allPages, err := listeners.List(c, listeners.ListOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List listener all pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List listener all pages error: %s", err.Error()))
 		return nil, err
 	}
 
 	allListeners, err := listeners.ExtractListeners(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract listener pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract listener pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -301,13 +302,13 @@ func getAllNat(c *Config) (*[]natgateways.NatGateway, error) {
 
 	allPages, err := natgateways.List(client, natgateways.ListOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List nat gateways error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List nat gateways error: %s", err.Error()))
 		return nil, err
 	}
 
 	allNatGateways, err := natgateways.ExtractNatGateways(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract nat gateway pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract nat gateway pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -319,20 +320,20 @@ func getAllRds(c *Config) (*rds.ListRdsResponse, error) {
 		Region: c.Region,
 	})
 	if err != nil {
-		logging.Logger.Error("Unable to get NewRDSV3 client: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Unable to get NewRDSV3 client: %s", err.Error()))
 		return nil, err
 	}
 
 	// HACK: Changed to ListOps
 	allPages, err := rds.List(client, rds.ListOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List rds error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List rds error: %s", err.Error()))
 		return nil, err
 	}
 
 	allRds, err := rds.ExtractRdsInstances(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract rds pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract rds pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -344,19 +345,19 @@ func getAllDcs(c *Config) (*dcs.ListDcsResponse, error) {
 		Region: c.Region,
 	})
 	if err != nil {
-		logging.Logger.Error("Failed to NewDCSServiceV1, error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to NewDCSServiceV1, error: %s", err.Error()))
 		return nil, err
 	}
 
 	allPages, err := dcs.List(client, dcs.ListDcsInstanceOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List dcs error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List dcs error: %s", err.Error()))
 		return nil, err
 	}
 
 	allDcs, err := dcs.ExtractDcsInstances(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract dcs pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract dcs pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -368,19 +369,19 @@ func getAllDms(c *Config) (*dms.ListDmsResponse, error) {
 		Region: c.Region,
 	})
 	if err != nil {
-		logging.Logger.Error("Failed to NewDMSServiceV1, error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Failed to NewDMSServiceV1, error: %s", err.Error()))
 		return nil, err
 	}
 
 	allPages, err := dms.List(client, dms.ListDmsInstanceOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List dms instances error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List dms instances error: %s", err.Error()))
 		return nil, err
 	}
 
 	allDms, err := dms.ExtractDmsInstances(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract dms instances pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract dms instances pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -397,13 +398,13 @@ func getAllDmsQueue(c *Config) (*[]queues.Queue, error) {
 
 	allPages, err := queues.List(client, false).AllPages()
 	if err != nil {
-		logging.Logger.Error("List dms queues error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List dms queues error: %s", err.Error()))
 		return nil, err
 	}
 
 	allQueues, err := queues.ExtractQueues(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract dms queues pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract dms queues pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -423,13 +424,13 @@ func getAllPublicIp(c *Config) (*[]publicips.PublicIP, error) {
 	}).AllPages()
 
 	if err != nil {
-		logging.Logger.Error("List public ips error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List public ips error: %s", err.Error()))
 		return nil, err
 	}
 	publicipList, err1 := publicips.ExtractPublicIPs(allPages)
 
 	if err1 != nil {
-		logging.Logger.Error("Extract public ips pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract public ips pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -448,13 +449,13 @@ func getAllBandwidth(c *Config) (*[]bandwidths.BandWidth, error) {
 		Limit: 1000,
 	}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List bandwidths error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List bandwidths error: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := bandwidths.ExtractBandWidths(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract bandwidths all pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract bandwidths all pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -473,13 +474,13 @@ func getAllVolume(c *Config) (*[]volumes.Volume, error) {
 		Limit: 1000,
 	}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List volumes error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List volumes error: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := volumes.ExtractVolumes(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract volumes all pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract volumes all pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -498,13 +499,13 @@ func getAllServer(c *Config) (*[]servers.Server, error) {
 		Limit: 1000,
 	}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List servers error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List servers error: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := servers.ExtractServers(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract servers all pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract servers all pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -521,13 +522,13 @@ func getAllGroup(c *Config) (*[]groups.Group, error) {
 
 	allPages, err := groups.List(client, groups.ListOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List groups error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List groups error: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := (allPages.(groups.GroupPage)).Extract()
 	if err != nil {
-		logging.Logger.Error("Extract groups all pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract groups all pages error: %s", err.Error()))
 		return nil, err
 	}
 
@@ -544,13 +545,13 @@ func getAllFunction(c *Config) (*function.FunctionList, error) {
 
 	allPages, err := function.List(client, function.ListOpts{}).AllPages()
 	if err != nil {
-		logging.Logger.Error("List function error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("List function error: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := function.ExtractList(allPages)
 	if err != nil {
-		logging.Logger.Error("Extract function all pages error: %s", err.Error())
+		logging.Logger.Error(fmt.Sprintf("Extract function all pages error: %s", err.Error()))
 		return nil, err
 	}
 
