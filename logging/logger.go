@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-var Logger *slog.Logger
+var logger *slog.Logger
 
 func InitLogger(debug bool) {
 	levelInfo := slog.LevelInfo
@@ -13,9 +13,9 @@ func InitLogger(debug bool) {
 		levelInfo = slog.LevelDebug
 	}
 
-	Logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: levelInfo,
 	}))
 
-	slog.SetDefault(Logger)
+	slog.SetDefault(logger)
 }
