@@ -20,7 +20,7 @@ var (
 func main() {
 	flag.Parse()
 	logging.InitLogger(*debug)
-	config, err := collector.NewCloudConfigFromFile(*clientConfig)
+	cloudConfig, err := collector.NewCloudConfigFromFile(*clientConfig)
 	if err != nil {
 		logging.Logger.Error("New Cloud Config From File error: %s", err.Error())
 		return
@@ -31,12 +31,12 @@ func main() {
 		return
 	}
 
-	http.HandleFunc(config.Global.MetricPath, metrics)
+	http.HandleFunc(cloudConfig.Global.MetricPath, metrics)
 	http.HandleFunc("/health", health)
 	http.HandleFunc("/ping", health)
 
-	logging.Logger.Info("Start server", "port", config.Global.Port)
-	if err := http.ListenAndServe(config.Global.Port, nil); err != nil {
+	logging.Logger.Info("Start server", "port", cloudConfig.Global.Port)
+	if err := http.ListenAndServe(cloudConfig.Global.Port, nil); err != nil {
 		logging.Logger.Error("Error occur when start server %s", err.Error())
 		os.Exit(1)
 	}
