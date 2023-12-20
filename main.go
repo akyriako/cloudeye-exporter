@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/akyriako/cloudeye-exporter/collector"
-	"github.com/akyriako/cloudeye-exporter/logs"
+	"github.com/akyriako/cloudeye-exporter/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
@@ -19,15 +19,15 @@ var (
 
 func main() {
 	flag.Parse()
-	logs.InitLogger(*debug)
+	logging.InitLogger(*debug)
 	config, err := collector.NewCloudConfigFromFile(*clientConfig)
 	if err != nil {
-		logs.Logger.Error("New Cloud Config From File error: %s", err.Error())
+		logging.Logger.Error("New Cloud Config From File error: %s", err.Error())
 		return
 	}
 	err = collector.InitFilterConfig(*filterEnable)
 	if err != nil {
-		logs.Logger.Error("Init filter Config error: %s", err.Error())
+		logging.Logger.Error("Init filter Config error: %s", err.Error())
 		return
 	}
 
@@ -35,9 +35,9 @@ func main() {
 	http.HandleFunc("/health", health)
 	http.HandleFunc("/ping", health)
 
-	logs.Logger.Info("Start server", "port", config.Global.Port)
+	logging.Logger.Info("Start server", "port", config.Global.Port)
 	if err := http.ListenAndServe(config.Global.Port, nil); err != nil {
-		logs.Logger.Error("Error occur when start server %s", err.Error())
+		logging.Logger.Error("Error occur when start server %s", err.Error())
 		os.Exit(1)
 	}
 }
@@ -52,20 +52,20 @@ func metrics(w http.ResponseWriter, r *http.Request) {
 	targets := strings.Split(target, ",")
 	registry := prometheus.NewRegistry()
 
-	logs.Logger.Info("Start to monitor services: %s", targets)
+	logging.Logger.Info("Start to monitor services: %s", targets)
 	exporter, err := collector.GetMonitoringCollector(*clientConfig, targets)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, err := w.Write([]byte(err.Error()))
 		if err != nil {
-			logs.Logger.Error("Fail to write response body, error: %s", err.Error())
+			logging.Logger.Error("Fail to write response body, error: %s", err.Error())
 			return
 		}
 		return
 	}
 	registry.MustRegister(exporter)
 	if err != nil {
-		logs.Logger.Error("Fail to start to morning services: %+v, err: %s", targets, err.Error())
+		logging.Logger.Error("Fail to start to morning services: %+v, err: %s", targets, err.Error())
 		return
 	}
 

@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/akyriako/cloudeye-exporter/logging"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/akyriako/cloudeye-exporter/logs"
 	"github.com/huaweicloud/golangsdk/openstack/ces/v1/metricdata"
 	"github.com/huaweicloud/golangsdk/openstack/ces/v1/metrics"
 	"github.com/prometheus/client_golang/prometheus"
@@ -62,7 +62,7 @@ func replaceName(name string) string {
 func GetMonitoringCollector(configpath string, namespaces []string) (*BaseHuaweiCloudExporter, error) {
 	globalConfig, err := NewCloudConfigFromFile(configpath)
 	if err != nil {
-		logs.Logger.Error("NewCloudConfigFromFile error: ", err.Error())
+		logging.Logger.Error("NewCloudConfigFromFile error: ", err.Error())
 		os.Exit(1)
 	}
 
@@ -92,18 +92,18 @@ func (exporter *BaseHuaweiCloudExporter) Describe(ch chan<- *prometheus.Desc) {
 
 func (exporter *BaseHuaweiCloudExporter) listMetrics(namespace string) ([]metrics.Metric, map[string][]string) {
 	allResourcesInfo, metrics := exporter.getAllResource(namespace)
-	logs.Logger.Debug("[%s] Resource number of %s: %d", exporter.txnKey, namespace, len(allResourcesInfo))
+	logging.Logger.Debug("[%s] Resource number of %s: %d", exporter.txnKey, namespace, len(allResourcesInfo))
 
 	if len(*metrics) > 0 {
 		return *metrics, allResourcesInfo
 	}
-	logs.Logger.Debug("[%s] Start to getAllMetric from CES", exporter.txnKey)
+	logging.Logger.Debug("[%s] Start to getAllMetric from CES", exporter.txnKey)
 	allMetrics, err := getAllMetric(exporter.ClientConfig, namespace)
 	if err != nil {
-		logs.Logger.Error("[%s] Get all metrics error: %s", exporter.txnKey, err.Error())
+		logging.Logger.Error("[%s] Get all metrics error: %s", exporter.txnKey, err.Error())
 		return nil, nil
 	}
-	logs.Logger.Debug("[%s] End to getAllMetric, Total number of of metrics: %d", exporter.txnKey, len(*allMetrics))
+	logging.Logger.Debug("[%s] End to getAllMetric, Total number of of metrics: %d", exporter.txnKey, len(*allMetrics))
 	return *allMetrics, allResourcesInfo
 }
 
@@ -122,7 +122,7 @@ func (exporter *BaseHuaweiCloudExporter) getLabelInfo(allResourcesInfo map[strin
 	}
 
 	if len(labels) != len(values) {
-		logs.Logger.Error("[%s] Inconsistent label and value: expected %d label %#v, but values got %d in %#v", exporter.txnKey,
+		logging.Logger.Error("[%s] Inconsistent label and value: expected %d label %#v, but values got %d in %#v", exporter.txnKey,
 			len(labels), labels, len(values), values)
 		return nil
 	}
@@ -139,7 +139,7 @@ func (exporter *BaseHuaweiCloudExporter) setProData(ctx context.Context, ch chan
 		exporter.debugMetricInfo(metric)
 		data, err := getLatestData(metric.Datapoints)
 		if err != nil {
-			logs.Logger.Warn("[%s] Get data point error: %s, metric_name: %s, dimension: %+v", exporter.txnKey, err.Error(), metric.MetricName, metric.Dimensions)
+			logging.Logger.Warn("[%s] Get data point error: %s, metric_name: %s, dimension: %+v", exporter.txnKey, err.Error(), metric.MetricName, metric.Dimensions)
 			continue
 		}
 
@@ -153,7 +153,7 @@ func (exporter *BaseHuaweiCloudExporter) setProData(ctx context.Context, ch chan
 			prometheus.NewDesc(fqName, fqName, labelInfo.Labels, nil),
 			prometheus.GaugeValue, data, labelInfo.Values...)
 		if err := sendMetricData(ctx, ch, proMetric); err != nil {
-			logs.Logger.Error("[%s] Context has canceled, no need to send metric data, metric name: %s", exporter.txnKey, fqName)
+			logging.Logger.Error("[%s] Context has canceled, no need to send metric data, metric name: %s", exporter.txnKey, fqName)
 		}
 	}
 }
@@ -167,11 +167,11 @@ func (exporter *BaseHuaweiCloudExporter) collectMetricByNamespace(ctx context.Co
 
 	allMetrics, allResourcesInfo := exporter.listMetrics(namespace)
 	if len(allMetrics) == 0 {
-		logs.Logger.Warn("[%s] Metrics of %s are not found, skip.", exporter.txnKey, namespace)
+		logging.Logger.Warn("[%s] Metrics of %s are not found, skip.", exporter.txnKey, namespace)
 		return
 	}
 
-	logs.Logger.Debug("[%s] Start to scrape metric data", exporter.txnKey)
+	logging.Logger.Debug("[%s] Start to scrape metric data", exporter.txnKey)
 	workChan := make(chan struct{}, exporter.MaxRoutines)
 	defer close(workChan)
 	var wg sync.WaitGroup
@@ -189,7 +189,7 @@ func (exporter *BaseHuaweiCloudExporter) collectMetricByNamespace(ctx context.Co
 					<-workChan
 					wg.Done()
 				}()
-				logs.Logger.Debug("[%s] Start to getBatchMetricData, metric count: %d", exporter.txnKey, len(tmpMetrics))
+				logging.Logger.Debug("[%s] Start to getBatchMetricData, metric count: %d", exporter.txnKey, len(tmpMetrics))
 				dataList, err := getBatchMetricData(exporter.ClientConfig, &tmpMetrics, exporter.From, exporter.To)
 				if err != nil {
 					return
@@ -201,13 +201,13 @@ func (exporter *BaseHuaweiCloudExporter) collectMetricByNamespace(ctx context.Co
 	}
 
 	wg.Wait()
-	logs.Logger.Debug("[%s] End to scrape all metric data", exporter.txnKey)
+	logging.Logger.Debug("[%s] End to scrape all metric data", exporter.txnKey)
 }
 
 func (exporter *BaseHuaweiCloudExporter) Collect(ch chan<- prometheus.Metric) {
 	duration, err := time.ParseDuration("-10m")
 	if err != nil {
-		logs.Logger.Error("ParseDuration -10m error:", err.Error())
+		logging.Logger.Error("ParseDuration -10m error:", err.Error())
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -218,7 +218,7 @@ func (exporter *BaseHuaweiCloudExporter) Collect(ch chan<- prometheus.Metric) {
 	exporter.To = strconv.FormatInt(now.UnixNano()/1e6, 10)
 	exporter.txnKey = fmt.Sprintf("%s-%s-%s", strings.Join(exporter.Namespaces, "-"), exporter.From, exporter.To)
 
-	logs.Logger.Debug("[%s] Start to collect data", exporter.txnKey)
+	logging.Logger.Debug("[%s] Start to collect data", exporter.txnKey)
 	var wg sync.WaitGroup
 	for _, namespace := range exporter.Namespaces {
 		wg.Add(1)
@@ -228,7 +228,7 @@ func (exporter *BaseHuaweiCloudExporter) Collect(ch chan<- prometheus.Metric) {
 		}(ctx, ch, namespace)
 	}
 	wg.Wait()
-	logs.Logger.Debug("[%s] End to collect data", exporter.txnKey)
+	logging.Logger.Debug("[%s] End to collect data", exporter.txnKey)
 }
 
 func sendMetricData(ctx context.Context, ch chan<- prometheus.Metric, metric prometheus.Metric) error {
@@ -248,10 +248,10 @@ func sendMetricData(ctx context.Context, ch chan<- prometheus.Metric, metric pro
 func (exporter *BaseHuaweiCloudExporter) debugMetricInfo(md metricdata.MetricData) {
 	dataJson, err := json.Marshal(md)
 	if err != nil {
-		logs.Logger.Error("[%s] Marshal metricData error: %s", exporter.txnKey, err.Error())
+		logging.Logger.Error("[%s] Marshal metricData error: %s", exporter.txnKey, err.Error())
 		return
 	}
-	logs.Logger.Debug("[%s] Get data points of metric are: %s", exporter.txnKey, string(dataJson))
+	logging.Logger.Debug("[%s] Get data points of metric are: %s", exporter.txnKey, string(dataJson))
 }
 
 func isResourceExist(dims *[]metricdata.Dimension, allResourceInfo *map[string][]string) bool {
