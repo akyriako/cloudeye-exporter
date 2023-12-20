@@ -1,24 +1,21 @@
 package logs
 
-import "github.com/prometheus/common/log"
+import (
+	"log/slog"
+	"os"
+)
 
-var Logger log.Logger
+var Logger *slog.Logger
 
-func InitLog(debug bool) {
-	Logger = log.Base()
-	err := Logger.SetFormat("logger:stdout?json=true")
-	if err != nil{
-		Logger.Fatalf("Set Log format error: %s", err.Error())
-	}
-	err = Logger.SetLevel("info")
-	if err != nil {
-		Logger.Fatal("Set Log level error.")
-		return
-	}
+func InitLogger(debug bool) {
+	levelInfo := slog.LevelInfo
 	if debug {
-		err := Logger.SetLevel("debug")
-		if err != nil {
-			Logger.Fatal("Set Log level error.")
-		}
+		levelInfo = slog.LevelDebug
 	}
+
+	Logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: levelInfo,
+	}))
+
+	slog.SetDefault(Logger)
 }
