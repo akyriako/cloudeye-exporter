@@ -33,7 +33,9 @@ func main() {
 		return
 	}
 
-	http.HandleFunc(cloudConfig.Global.MetricPath, metrics)
+	metricsPath := cloudConfig.Global.MetricPath
+
+	http.HandleFunc(metricsPath, metrics)
 	http.HandleFunc("/health", health)
 	http.HandleFunc("/ping", health)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -41,12 +43,12 @@ func main() {
              <head><title>Open Telekom Cloud CloudEye Exporter</title></head>
              <body>
              <h1>Open Telekom Cloud CloudEye Exporter</h1>
-             <p><a href='` + cloudConfig.Global.MetricPath + "?services=SYS.ELB" + `'>ELB Metrics</a></p>
-             <p><a href='` + cloudConfig.Global.MetricPath + "?services=SYS.RDS" + `'>RDS Metrics</a></p>
-             <p><a href='` + cloudConfig.Global.MetricPath + "?services=SYS.DCS" + `'>DCS Metrics</a></p>
-             <p><a href='` + cloudConfig.Global.MetricPath + "?services=SYS.NAT" + `'>NAT Metrics</a></p>
-             <p><a href='` + cloudConfig.Global.MetricPath + "?services=SYS.VPC" + `'>VPC Metrics</a></p>
-             <p><a href='` + cloudConfig.Global.MetricPath + "?services=SYS.ECS" + `'>ECS Metrics</a></p>
+             <p><a href='` + metricsPath + "?services=SYS.ELB" + `'>ELB Metrics</a></p>
+             <p><a href='` + metricsPath + "?services=SYS.RDS" + `'>RDS Metrics</a></p>
+             <p><a href='` + metricsPath + "?services=SYS.DCS" + `'>DCS Metrics</a></p>
+             <p><a href='` + metricsPath + "?services=SYS.NAT" + `'>NAT Metrics</a></p>
+             <p><a href='` + metricsPath + "?services=SYS.VPC" + `'>VPC Metrics</a></p>
+             <p><a href='` + metricsPath + "?services=SYS.ECS" + `'>ECS Metrics</a></p>
              </body>
              </html>`))
 	})
