@@ -21,7 +21,7 @@ var (
 
 func main() {
 	flag.Parse()
-	logging.InitLogger(*debug)
+	logging.InitializeDefaultLogger(*debug)
 	cloudConfig, err := collector.NewCloudConfigFromFile(*clientConfig)
 	if err != nil {
 		slog.Error(fmt.Sprintf("New Cloud Config From File error: %s", err.Error()))

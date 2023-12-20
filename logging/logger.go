@@ -7,7 +7,7 @@ import (
 
 var logger *slog.Logger
 
-func InitLogger(debug bool) {
+func InitializeDefaultLogger(debug bool) {
 	levelInfo := slog.LevelInfo
 	if debug {
 		levelInfo = slog.LevelDebug

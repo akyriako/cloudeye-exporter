@@ -1,5 +1,5 @@
 global:
-  prefix: "huaweicloud"
+  prefix: "opentelekomcloud"
   scrape_batch_size: 10
 
 auth:
