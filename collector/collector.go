@@ -62,7 +62,7 @@ func replaceName(name string) string {
 func GetMonitoringCollector(configpath string, namespaces []string) (*BaseHuaweiCloudExporter, error) {
 	globalConfig, err := NewCloudConfigFromFile(configpath)
 	if err != nil {
-		slog.Error(fmt.Sprintf("NewCloudConfigFromFile error: ", err.Error()))
+		slog.Error(fmt.Sprintf("NewCloudConfigFromFile error: %s", err.Error()))
 		os.Exit(1)
 	}
 
