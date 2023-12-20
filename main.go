@@ -45,7 +45,7 @@ func main() {
 func metrics(w http.ResponseWriter, r *http.Request) {
 	target := r.URL.Query().Get("services")
 	if target == "" {
-		http.Error(w, "'target' parameter must be specified", 400)
+		http.Error(w, "'target' parameter must be specified", http.StatusBadRequest)
 		return
 	}
 
@@ -55,7 +55,7 @@ func metrics(w http.ResponseWriter, r *http.Request) {
 	logs.Logger.Info("Start to monitor services: %s", targets)
 	exporter, err := collector.GetMonitoringCollector(*clientConfig, targets)
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		_, err := w.Write([]byte(err.Error()))
 		if err != nil {
 			logs.Logger.Error("Fail to write response body, error: %s", err.Error())
