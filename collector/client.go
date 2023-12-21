@@ -180,8 +180,8 @@ func (c *OpenTelekomCloudClient) GetServiceEndpoint(namespace string) (*golangsd
 		return c.GetDMSClient()
 	case "SYS.VPC":
 		return c.GetVPCClient()
-	case "SYS.EBS":
-		return c.GetEBSClient()
+	case "SYS.EVS":
+		return c.GetEVSClient()
 	case "SYS.ECS":
 		return c.GetECSClient()
 	case "SYS.AS":
@@ -388,8 +388,8 @@ func (c *OpenTelekomCloudClient) getAllBandwidth() (*[]bandwidths.BandWidth, err
 	return &result, nil
 }
 
-func (c *OpenTelekomCloudClient) getAllVolume() (*[]volumes.Volume, error) {
-	client, err := c.GetEBSClient()
+func (c *OpenTelekomCloudClient) getAllVolumes() (*[]volumes.Volume, error) {
+	client, err := c.GetEVSClient()
 	if err != nil {
 		return nil, err
 	}

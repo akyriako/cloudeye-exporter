@@ -32,7 +32,7 @@ func Metrics(cloudConfig *config.CloudConfig) func(w http.ResponseWriter, r *htt
 		registry := prometheus.NewRegistry()
 
 		slog.Info(fmt.Sprintf("Start to monitor services: %s", targets))
-		exporter, err := collector.NewCloudEyeCollector(cloudConfig, targets)
+		cloudEyeCollector, err := collector.NewCloudEyeCollector(cloudConfig, targets)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, err := w.Write([]byte(err.Error()))
@@ -42,7 +42,7 @@ func Metrics(cloudConfig *config.CloudConfig) func(w http.ResponseWriter, r *htt
 			}
 			return
 		}
-		registry.MustRegister(exporter)
+		registry.MustRegister(cloudEyeCollector)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Fail to start to morning services: %+v, err: %s", targets, err.Error()))
 			return

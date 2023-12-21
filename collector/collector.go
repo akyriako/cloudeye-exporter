@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/akyriako/cloudeye-exporter/config"
-	"github.com/huaweicloud/golangsdk/openstack/ces/v1/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"log/slog"
 	"strconv"
@@ -66,57 +65,9 @@ func (c *CloudEyeCollector) Collect(ch chan<- prometheus.Metric) {
 		wg.Add(1)
 		go func(ctx context.Context, ch chan<- prometheus.Metric, namespace string) {
 			defer wg.Done()
-			c.collectMetricByNamespace(ctx, ch, namespace)
+			c.collectMetricsByNamespace(ctx, ch, namespace)
 		}(ctx, ch, namespace)
 	}
 	wg.Wait()
 	slog.Debug(fmt.Sprintf("[%s] End to collect data", c.txnKey))
-}
-
-func (c *CloudEyeCollector) getElbResourceInfo() (map[string][]string, *[]metrics.Metric) {
-	resourceInfos := make(map[string][]string)
-	filterMetrics := make([]metrics.Metric, 0)
-	elbInfo.Lock()
-	defer elbInfo.Unlock()
-	if elbInfo.Info == nil || time.Now().Unix() > elbInfo.TTL {
-		allELBs, err := c.Client.getAllLoadBalancers()
-		if err != nil {
-			slog.Error(fmt.Sprintf("Get all LoadBalancer error: %s", err.Error()))
-			return elbInfo.Info, &elbInfo.FilterMetrics
-		}
-		if allELBs == nil {
-			return elbInfo.Info, &elbInfo.FilterMetrics
-		}
-		configMap := config.GetMetricFilters("SYS.ELB")
-		for _, elb := range *allELBs {
-			resourceInfos[elb.ID] = []string{elb.Name, elb.Provider, elb.VipAddress}
-			if configMap == nil {
-				continue
-			}
-			if metricNames, ok := configMap["lbaas_instance_id"]; ok {
-				filterMetrics = append(filterMetrics, buildSingleDimensionMetrics(metricNames, "SYS.ELB", "lbaas_instance_id", elb.ID)...)
-			}
-			if metricNames, ok := configMap["lbaas_instance_id,lbaas_listener_id"]; ok {
-				filterMetrics = append(filterMetrics, buildListenerMetrics(metricNames, &elb)...)
-			}
-			if metricNames, ok := configMap["lbaas_instance_id,lbaas_pool_id"]; ok {
-				filterMetrics = append(filterMetrics, buildPoolMetrics(metricNames, &elb)...)
-			}
-		}
-
-		allListeners, err := c.Client.getAllListeners()
-		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Listener error: %s", err.Error()))
-		}
-		if allListeners != nil {
-			for _, listener := range *allListeners {
-				resourceInfos[listener.ID] = []string{listener.Name, fmt.Sprintf("%d", listener.ProtocolPort)}
-			}
-		}
-
-		elbInfo.Info = resourceInfos
-		elbInfo.FilterMetrics = filterMetrics
-		elbInfo.TTL = time.Now().Add(TTL).Unix()
-	}
-	return elbInfo.Info, &elbInfo.FilterMetrics
 }

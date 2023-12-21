@@ -37,6 +37,14 @@ var defaultExtensionLabels = map[string][]string{
 
 const TTL = time.Hour * 3
 
+type serversInfo struct {
+	TTL           int64
+	LenMetric     int
+	Info          map[string][]string
+	FilterMetrics []metrics.Metric
+	sync.Mutex
+}
+
 var (
 	elbInfo serversInfo
 	natInfo serversInfo
@@ -50,15 +58,55 @@ var (
 	fgsInfo serversInfo
 )
 
-type serversInfo struct {
-	TTL           int64
-	LenMetric     int
-	Info          map[string][]string
-	FilterMetrics []metrics.Metric
-	sync.Mutex
+func (c *CloudEyeCollector) getELBResourceInfo() (map[string][]string, *[]metrics.Metric) {
+	resourceInfos := make(map[string][]string)
+	filterMetrics := make([]metrics.Metric, 0)
+	elbInfo.Lock()
+	defer elbInfo.Unlock()
+	if elbInfo.Info == nil || time.Now().Unix() > elbInfo.TTL {
+		allELBs, err := c.Client.getAllLoadBalancers()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Get all LoadBalancer error: %s", err.Error()))
+			return elbInfo.Info, &elbInfo.FilterMetrics
+		}
+		if allELBs == nil {
+			return elbInfo.Info, &elbInfo.FilterMetrics
+		}
+		configMap := config.GetMetricFilters("SYS.ELB")
+		for _, elb := range *allELBs {
+			resourceInfos[elb.ID] = []string{elb.Name, elb.Provider, elb.VipAddress}
+			if configMap == nil {
+				continue
+			}
+			if metricNames, ok := configMap["lbaas_instance_id"]; ok {
+				filterMetrics = append(filterMetrics, buildSingleDimensionMetrics(metricNames, "SYS.ELB", "lbaas_instance_id", elb.ID)...)
+			}
+			if metricNames, ok := configMap["lbaas_instance_id,lbaas_listener_id"]; ok {
+				filterMetrics = append(filterMetrics, c.buildELBListenerMetrics(metricNames, &elb)...)
+			}
+			if metricNames, ok := configMap["lbaas_instance_id,lbaas_pool_id"]; ok {
+				filterMetrics = append(filterMetrics, c.buildELBPoolMetrics(metricNames, &elb)...)
+			}
+		}
+
+		allListeners, err := c.Client.getAllListeners()
+		if err != nil {
+			slog.Error(fmt.Sprintf("Get all Listener error: %s", err.Error()))
+		}
+		if allListeners != nil {
+			for _, listener := range *allListeners {
+				resourceInfos[listener.ID] = []string{listener.Name, fmt.Sprintf("%d", listener.ProtocolPort)}
+			}
+		}
+
+		elbInfo.Info = resourceInfos
+		elbInfo.FilterMetrics = filterMetrics
+		elbInfo.TTL = time.Now().Add(TTL).Unix()
+	}
+	return elbInfo.Info, &elbInfo.FilterMetrics
 }
 
-func buildListenerMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
+func (c *CloudEyeCollector) buildELBListenerMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
 	filterMetrics := make([]metrics.Metric, 0)
 	for listenerIndex := range elb.Listeners {
 		for index := range metricNames {
@@ -81,7 +129,7 @@ func buildListenerMetrics(metricNames []string, elb *loadbalancers.LoadBalancer)
 	return filterMetrics
 }
 
-func buildPoolMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
+func (c *CloudEyeCollector) buildELBPoolMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
 	filterMetrics := make([]metrics.Metric, 0)
 	for poolIndex := range elb.Pools {
 		for index := range metricNames {
@@ -104,7 +152,7 @@ func buildPoolMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []m
 	return filterMetrics
 }
 
-func (c *CloudEyeCollector) getNatResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getNATResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	natInfo.Lock()
@@ -136,7 +184,7 @@ func (c *CloudEyeCollector) getNatResourceInfo() (map[string][]string, *[]metric
 	return natInfo.Info, &natInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getRdsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getRDSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	rdsInfo.Lock()
@@ -180,7 +228,7 @@ func (c *CloudEyeCollector) getRdsResourceInfo() (map[string][]string, *[]metric
 	return rdsInfo.Info, &rdsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getDmsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getDMSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	dmsInfo.Lock()
 	defer dmsInfo.Unlock()
@@ -215,7 +263,7 @@ func (c *CloudEyeCollector) getDmsResourceInfo() (map[string][]string, *[]metric
 	return dmsInfo.Info, &dmsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getDcsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getDCSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	dcsInfo.Lock()
@@ -254,7 +302,7 @@ func (c *CloudEyeCollector) getDcsResourceInfo() (map[string][]string, *[]metric
 	return dcsInfo.Info, &dcsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getVpcResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getVPCResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	vpcInfo.Lock()
 	defer vpcInfo.Unlock()
@@ -286,12 +334,12 @@ func (c *CloudEyeCollector) getVpcResourceInfo() (map[string][]string, *[]metric
 	return vpcInfo.Info, &vpcInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getEvsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getEVSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	evsInfo.Lock()
 	defer evsInfo.Unlock()
 	if evsInfo.Info == nil || time.Now().Unix() > evsInfo.TTL {
-		allVolumes, err := c.Client.getAllVolume()
+		allVolumes, err := c.Client.getAllVolumes()
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Volume error: %s", err.Error()))
 			return evsInfo.Info, &evsInfo.FilterMetrics
@@ -313,7 +361,7 @@ func (c *CloudEyeCollector) getEvsResourceInfo() (map[string][]string, *[]metric
 	return evsInfo.Info, &evsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getEcsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getECSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	ecsInfo.Lock()
 	defer ecsInfo.Unlock()
@@ -337,7 +385,7 @@ func (c *CloudEyeCollector) getEcsResourceInfo() (map[string][]string, *[]metric
 	return ecsInfo.Info, &ecsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getAsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getASResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	asInfo.Lock()
 	defer asInfo.Unlock()
@@ -361,7 +409,7 @@ func (c *CloudEyeCollector) getAsResourceInfo() (map[string][]string, *[]metrics
 	return asInfo.Info, &asInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getFunctionGraphResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getFGSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	fgsInfo.Lock()
 	defer fgsInfo.Unlock()
@@ -388,25 +436,25 @@ func (c *CloudEyeCollector) getFunctionGraphResourceInfo() (map[string][]string,
 func (c *CloudEyeCollector) getAllResources(namespace string) (map[string][]string, *[]metrics.Metric) {
 	switch namespace {
 	case "SYS.ELB":
-		return c.getElbResourceInfo()
+		return c.getELBResourceInfo()
 	case "SYS.NAT":
-		return c.getNatResourceInfo()
+		return c.getNATResourceInfo()
 	case "SYS.RDS":
-		return c.getRdsResourceInfo()
+		return c.getRDSResourceInfo()
 	case "SYS.DMS":
-		return c.getDmsResourceInfo()
+		return c.getDMSResourceInfo()
 	case "SYS.DCS":
-		return c.getDcsResourceInfo()
+		return c.getDCSResourceInfo()
 	case "SYS.VPC":
-		return c.getVpcResourceInfo()
+		return c.getVPCResourceInfo()
 	case "SYS.EVS":
-		return c.getEvsResourceInfo()
+		return c.getEVSResourceInfo()
 	case "SYS.ECS":
-		return c.getEcsResourceInfo()
+		return c.getECSResourceInfo()
 	case "SYS.AS":
-		return c.getAsResourceInfo()
+		return c.getASResourceInfo()
 	case "SYS.FunctionGraph":
-		return c.getFunctionGraphResourceInfo()
+		return c.getFGSResourceInfo()
 	default:
 		return map[string][]string{}, &[]metrics.Metric{}
 	}

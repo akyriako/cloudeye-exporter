@@ -91,12 +91,12 @@ func (c *OpenTelekomCloudClient) GetVPCClient() (*golangsdk.ServiceClient, error
 	return client, nil
 }
 
-func (c *OpenTelekomCloudClient) GetEBSClient() (*golangsdk.ServiceClient, error) {
+func (c *OpenTelekomCloudClient) GetEVSClient() (*golangsdk.ServiceClient, error) {
 	client, err := openstack.NewBlockStorageV2(c.HwClient, golangsdk.EndpointOpts{
 		Region: c.Config.Region,
 	})
 	if err != nil {
-		slog.Error(fmt.Sprintf("Failed to get the EBSV2 client: %s", err.Error()))
+		slog.Error(fmt.Sprintf("Failed to get the BlockStorageVS client: %s", err.Error()))
 		return nil, err
 	}
 
