@@ -48,14 +48,14 @@ func GetMetricPrefixName(prefix string, namespace string) string {
 }
 
 func (c *CloudEyeCollector) listMetrics(namespace string) ([]metrics.Metric, map[string][]string) {
-	allResourcesInfo, metrics := c.getAllResource(namespace)
+	allResourcesInfo, metrics := c.getAllResources(namespace)
 	slog.Debug(fmt.Sprintf("[%s] Resource number of %s: %d", c.txnKey, namespace, len(allResourcesInfo)))
 
 	if len(*metrics) > 0 {
 		return *metrics, allResourcesInfo
 	}
 	slog.Debug(fmt.Sprintf("[%s] Start to getAllMetric from CES", c.txnKey))
-	allMetrics, err := getAllMetric(c.ClientConfig, namespace)
+	allMetrics, err := c.Client.getAllMetrics(namespace)
 	if err != nil {
 		slog.Error(fmt.Sprintf("[%s] Get all metrics error: %s", c.txnKey, err.Error()))
 		return nil, nil
@@ -147,7 +147,7 @@ func (c *CloudEyeCollector) collectMetricByNamespace(ctx context.Context, ch cha
 					wg.Done()
 				}()
 				slog.Debug(fmt.Sprintf("[%s] Start to getBatchMetricData, metric count: %d", c.txnKey, len(tmpMetrics)))
-				dataList, err := getBatchMetricData(c.ClientConfig, &tmpMetrics, c.From, c.To)
+				dataList, err := c.Client.getBatchMetricData(&tmpMetrics, c.From, c.To)
 				if err != nil {
 					return
 				}

@@ -108,5 +108,6 @@ func GetMetricFilters(namespace string) map[string][]string {
 	if configMap, ok := metricsFilters[namespace]; ok {
 		return configMap
 	}
+
 	return nil
 }
