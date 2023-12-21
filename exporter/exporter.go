@@ -1,4 +1,4 @@
-package collector
+package exporter
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type CloudEyeCollector struct {
+type CloudEyeExporter struct {
 	From            string
 	To              string
 	Namespaces      []string
@@ -24,13 +24,13 @@ type CloudEyeCollector struct {
 	ScrapeBatchSize int
 }
 
-func NewCloudEyeCollector(cloudConfig *config.CloudConfig, namespaces []string) (*CloudEyeCollector, error) {
+func NewCloudEyeExporter(cloudConfig *config.CloudConfig, namespaces []string) (*CloudEyeExporter, error) {
 	client, err := NewOpenTelekomCloudClient(cloudConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	cloudEyeCollector := &CloudEyeCollector{
+	cloudEyeCollector := &CloudEyeExporter{
 		Namespaces:      namespaces,
 		Prefix:          cloudConfig.Global.Prefix,
 		MaxRoutines:     cloudConfig.Global.MaxRoutines,
@@ -41,11 +41,11 @@ func NewCloudEyeCollector(cloudConfig *config.CloudConfig, namespaces []string) 
 }
 
 // Describe simply sends the two Descs in the struct to the channel.
-func (c *CloudEyeCollector) Describe(ch chan<- *prometheus.Desc) {
+func (c *CloudEyeExporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- prometheus.NewDesc("dummy", "dummy", nil, nil)
 }
 
-func (c *CloudEyeCollector) Collect(ch chan<- prometheus.Metric) {
+func (c *CloudEyeExporter) Collect(ch chan<- prometheus.Metric) {
 	duration, err := time.ParseDuration("-10m")
 	if err != nil {
 		slog.Error(fmt.Sprintf("parse duration -10m error: %s", err.Error()))

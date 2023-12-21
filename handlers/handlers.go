@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/akyriako/cloudeye-exporter/collector"
 	"github.com/akyriako/cloudeye-exporter/config"
+	"github.com/akyriako/cloudeye-exporter/exporter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
@@ -31,8 +31,8 @@ func Metrics(cloudConfig *config.CloudConfig) func(w http.ResponseWriter, r *htt
 		targets := strings.Split(target, ",")
 		registry := prometheus.NewRegistry()
 
-		slog.Info("starting cloudeye collector", "targets", targets)
-		cloudEyeCollector, err := collector.NewCloudEyeCollector(cloudConfig, targets)
+		slog.Debug("starting cloudeye exporter", "targets", targets)
+		cloudEyeExporter, err := exporter.NewCloudEyeExporter(cloudConfig, targets)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, err := w.Write([]byte(err.Error()))
@@ -42,7 +42,7 @@ func Metrics(cloudConfig *config.CloudConfig) func(w http.ResponseWriter, r *htt
 			}
 			return
 		}
-		registry.MustRegister(cloudEyeCollector)
+		registry.MustRegister(cloudEyeExporter)
 		if err != nil {
 			slog.Error(fmt.Sprintf("registering cloudeye collector in prometheus failed: %+v, err: %s", targets, err.Error()))
 			return

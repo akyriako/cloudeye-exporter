@@ -33,7 +33,7 @@ func main() {
 	http.HandleFunc("/ping", handlers.Health)
 	http.HandleFunc("/", handlers.Welcome(cloudConfig.Global.MetricsPath))
 
-	slog.Info("starting server", "port", cloudConfig.Global.Port)
+	slog.Info(fmt.Sprintf("cloudeye exporter listening at 0.0.0.0%s%s", cloudConfig.Global.Port, cloudConfig.Global.MetricsPath))
 	if err := http.ListenAndServe(cloudConfig.Global.Port, nil); err != nil {
 		slog.Error(fmt.Sprintf("error occur when start server %s", err.Error()))
 		os.Exit(1)

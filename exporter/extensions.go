@@ -1,4 +1,4 @@
-package collector
+package exporter
 
 import (
 	"fmt"
@@ -58,7 +58,7 @@ var (
 	fgsInfo serversInfo
 )
 
-func (c *CloudEyeCollector) getELBResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getELBResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	elbInfo.Lock()
@@ -106,7 +106,7 @@ func (c *CloudEyeCollector) getELBResourceInfo() (map[string][]string, *[]metric
 	return elbInfo.Info, &elbInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) buildELBListenerMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
+func (c *CloudEyeExporter) buildELBListenerMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
 	filterMetrics := make([]metrics.Metric, 0)
 	for listenerIndex := range elb.Listeners {
 		for index := range metricNames {
@@ -129,7 +129,7 @@ func (c *CloudEyeCollector) buildELBListenerMetrics(metricNames []string, elb *l
 	return filterMetrics
 }
 
-func (c *CloudEyeCollector) buildELBPoolMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
+func (c *CloudEyeExporter) buildELBPoolMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []metrics.Metric {
 	filterMetrics := make([]metrics.Metric, 0)
 	for poolIndex := range elb.Pools {
 		for index := range metricNames {
@@ -152,7 +152,7 @@ func (c *CloudEyeCollector) buildELBPoolMetrics(metricNames []string, elb *loadb
 	return filterMetrics
 }
 
-func (c *CloudEyeCollector) getNATResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getNATResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	natInfo.Lock()
@@ -184,7 +184,7 @@ func (c *CloudEyeCollector) getNATResourceInfo() (map[string][]string, *[]metric
 	return natInfo.Info, &natInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getRDSResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getRDSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	rdsInfo.Lock()
@@ -228,7 +228,7 @@ func (c *CloudEyeCollector) getRDSResourceInfo() (map[string][]string, *[]metric
 	return rdsInfo.Info, &rdsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getDMSResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getDMSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	dmsInfo.Lock()
 	defer dmsInfo.Unlock()
@@ -263,7 +263,7 @@ func (c *CloudEyeCollector) getDMSResourceInfo() (map[string][]string, *[]metric
 	return dmsInfo.Info, &dmsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getDCSResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getDCSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	dcsInfo.Lock()
@@ -302,7 +302,7 @@ func (c *CloudEyeCollector) getDCSResourceInfo() (map[string][]string, *[]metric
 	return dcsInfo.Info, &dcsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getVPCResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getVPCResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	vpcInfo.Lock()
 	defer vpcInfo.Unlock()
@@ -334,7 +334,7 @@ func (c *CloudEyeCollector) getVPCResourceInfo() (map[string][]string, *[]metric
 	return vpcInfo.Info, &vpcInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getEVSResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getEVSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	evsInfo.Lock()
 	defer evsInfo.Unlock()
@@ -361,7 +361,7 @@ func (c *CloudEyeCollector) getEVSResourceInfo() (map[string][]string, *[]metric
 	return evsInfo.Info, &evsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getECSResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getECSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	ecsInfo.Lock()
 	defer ecsInfo.Unlock()
@@ -385,7 +385,7 @@ func (c *CloudEyeCollector) getECSResourceInfo() (map[string][]string, *[]metric
 	return ecsInfo.Info, &ecsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getASResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getASResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	asInfo.Lock()
 	defer asInfo.Unlock()
@@ -409,7 +409,7 @@ func (c *CloudEyeCollector) getASResourceInfo() (map[string][]string, *[]metrics
 	return asInfo.Info, &asInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getFGSResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getFGSResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	fgsInfo.Lock()
 	defer fgsInfo.Unlock()
@@ -433,7 +433,7 @@ func (c *CloudEyeCollector) getFGSResourceInfo() (map[string][]string, *[]metric
 	return fgsInfo.Info, &fgsInfo.FilterMetrics
 }
 
-func (c *CloudEyeCollector) getAllResources(namespace string) (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeExporter) getAllResources(namespace string) (map[string][]string, *[]metrics.Metric) {
 	switch namespace {
 	case "SYS.ELB":
 		return c.getELBResourceInfo()

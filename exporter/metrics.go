@@ -1,4 +1,4 @@
-package collector
+package exporter
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-func (c *CloudEyeCollector) collectMetricsByNamespace(ctx context.Context, ch chan<- prometheus.Metric, namespace string) {
+func (c *CloudEyeExporter) collectMetricsByNamespace(ctx context.Context, ch chan<- prometheus.Metric, namespace string) {
 	defer func() {
 		if err := recover(); err != nil {
 			slog.Error("fatal error occurred during collecting metrics: %s", err)
@@ -20,7 +20,7 @@ func (c *CloudEyeCollector) collectMetricsByNamespace(ctx context.Context, ch ch
 
 	allMetrics, allResourcesInfo := c.getAllMetricsAndResourcesByNamespace(namespace)
 	if len(allMetrics) == 0 {
-		slog.Warn(fmt.Sprintf("[%s] metrics of %s were not found", c.txnKey, namespace))
+		slog.Warn(fmt.Sprintf("[%s] no metrics on %s were found", c.txnKey, namespace))
 		return
 	}
 
@@ -58,7 +58,7 @@ func (c *CloudEyeCollector) collectMetricsByNamespace(ctx context.Context, ch ch
 	slog.Debug(fmt.Sprintf("[%s] scraped all metric data", c.txnKey))
 }
 
-func (c *CloudEyeCollector) getAllMetricsAndResourcesByNamespace(namespace string) ([]metrics.Metric, map[string][]string) {
+func (c *CloudEyeExporter) getAllMetricsAndResourcesByNamespace(namespace string) ([]metrics.Metric, map[string][]string) {
 	allResourcesInfo, filterMetrics := c.getAllResources(namespace)
 	slog.Debug(fmt.Sprintf("[%s] found %d resources in %s: ", c.txnKey, len(allResourcesInfo), namespace))
 
@@ -76,7 +76,7 @@ func (c *CloudEyeCollector) getAllMetricsAndResourcesByNamespace(namespace strin
 	return *allMetrics, allResourcesInfo
 }
 
-func (c *CloudEyeCollector) getBatchMetricData(metrics *[]metricdata.Metric, from string, to string) (*[]metricdata.MetricData, error) {
+func (c *CloudEyeExporter) getBatchMetricData(metrics *[]metricdata.Metric, from string, to string) (*[]metricdata.MetricData, error) {
 	ifrom, err := strconv.ParseInt(from, 10, 64)
 	if err != nil {
 		slog.Error(fmt.Sprintf("parse failed: %s", err.Error()))
@@ -110,12 +110,13 @@ func (c *CloudEyeCollector) getBatchMetricData(metrics *[]metricdata.Metric, fro
 	return &v, nil
 }
 
-func (c *CloudEyeCollector) getAllMetrics(namespace string) (*[]metrics.Metric, error) {
+func (c *CloudEyeExporter) getAllMetrics(namespace string) (*[]metrics.Metric, error) {
 	client, err := c.Client.GetCESClient()
 	if err != nil {
 		slog.Error(fmt.Sprintf("acquiring a CES client failed: %s", err.Error()))
 		return nil, err
 	}
+
 	limit := 1000
 	allPages, err := metrics.List(client, metrics.ListOpts{Namespace: namespace, Limit: &limit}).AllPages()
 	if err != nil {
@@ -132,7 +133,7 @@ func (c *CloudEyeCollector) getAllMetrics(namespace string) (*[]metrics.Metric, 
 	return &v.Metrics, nil
 }
 
-func (c *CloudEyeCollector) pushMetricsData(
+func (c *CloudEyeExporter) pushMetricsData(
 	ctx context.Context,
 	ch chan<- prometheus.Metric,
 	dataList []metricdata.MetricData,
@@ -147,7 +148,7 @@ func (c *CloudEyeCollector) pushMetricsData(
 
 		data, err := getLatestData(metric.Datapoints)
 		if err != nil {
-			slog.Warn(fmt.Sprintf("[%s] gettig latest data failed: %s, metric_name: %s, dimension: %+v", c.txnKey, err.Error(), metric.MetricName, metric.Dimensions))
+			slog.Warn(fmt.Sprintf("[%s] getting latest data failed: %s, metric_name: %s, dimension: %+v", c.txnKey, err.Error(), metric.MetricName, metric.Dimensions))
 			continue
 		}
 
