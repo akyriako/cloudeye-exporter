@@ -31,7 +31,7 @@ func Metrics(cloudConfig *config.CloudConfig) func(w http.ResponseWriter, r *htt
 		targets := strings.Split(target, ",")
 		registry := prometheus.NewRegistry()
 
-		slog.Debug("starting cloudeye exporter", "targets", targets)
+		slog.Info("starting cloudeye exporter", "targets", targets)
 		cloudEyeExporter, err := exporter.NewCloudEyeExporter(cloudConfig, targets)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)

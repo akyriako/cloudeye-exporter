@@ -30,14 +30,15 @@ func NewCloudEyeExporter(cloudConfig *config.CloudConfig, namespaces []string) (
 		return nil, err
 	}
 
-	cloudEyeCollector := &CloudEyeExporter{
+	cloudEyeExporter := &CloudEyeExporter{
 		Namespaces:      namespaces,
 		Prefix:          cloudConfig.Global.Prefix,
 		MaxRoutines:     cloudConfig.Global.MaxRoutines,
 		Client:          client,
 		ScrapeBatchSize: cloudConfig.Global.ScrapeBatchSize,
 	}
-	return cloudEyeCollector, nil
+
+	return cloudEyeExporter, nil
 }
 
 // Describe simply sends the two Descs in the struct to the channel.
