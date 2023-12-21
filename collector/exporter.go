@@ -1,4 +1,4 @@
-package exporter
+package collector
 
 import (
 	"context"
@@ -42,7 +42,9 @@ func NewCloudEyeExporter(cloudConfig *config.CloudConfig, namespaces []string) (
 	return cloudEyeExporter, nil
 }
 
-// Describe simply sends the two Descs in the struct to the channel.
+// / Sending no descriptor at all marks the Collector as “unchecked”,
+// i.e. no checks will be performed at registration time, and the
+// Collector may yield any Metric it sees fit in its Collect method.
 func (c *CloudEyeExporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- prometheus.NewDesc("dummy", "dummy", nil, nil)
 }
