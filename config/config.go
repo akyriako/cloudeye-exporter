@@ -64,7 +64,7 @@ func GetConfigFromFile(configPath string, enableFilters bool) (*CloudConfig, err
 	setDefaults(&config)
 
 	if enableFilters {
-		err := enableMetricFilters(enableFilters)
+		err := enableMetricFilters()
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func setDefaults(config *CloudConfig) {
 	}
 }
 
-func enableMetricFilters(enable bool) error {
+func enableMetricFilters() error {
 	metricsFilters = make(map[string]map[string][]string)
 	err := yaml.Unmarshal(metricsFiltersConfigFile, &metricsFilters)
 	if err != nil {
