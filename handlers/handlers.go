@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/akyriako/cloudeye-exporter/collector"
+	"github.com/akyriako/cloudeye-exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
@@ -19,7 +20,7 @@ func Health(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Metrics(cloudConfigFlag string) func(w http.ResponseWriter, r *http.Request) {
+func Metrics(cloudConfig *config.CloudConfig) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		target := r.URL.Query().Get("services")
 		if target == "" {
@@ -31,7 +32,7 @@ func Metrics(cloudConfigFlag string) func(w http.ResponseWriter, r *http.Request
 		registry := prometheus.NewRegistry()
 
 		slog.Info(fmt.Sprintf("Start to monitor services: %s", targets))
-		exporter, err := collector.GetMonitoringCollector(cloudConfigFlag, targets)
+		exporter, err := collector.NewCloudEyeCollector(cloudConfig, targets)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, err := w.Write([]byte(err.Error()))

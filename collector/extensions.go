@@ -75,13 +75,13 @@ func buildSingleDimensionMetrics(metricNames []string, namespace, dimName, dimVa
 	return filterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getElbResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getElbResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	elbInfo.Lock()
 	defer elbInfo.Unlock()
 	if elbInfo.Info == nil || time.Now().Unix() > elbInfo.TTL {
-		allELBs, err := getAllLoadBalancer(exporter.ClientConfig)
+		allELBs, err := getAllLoadBalancer(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all LoadBalancer error: %s", err.Error()))
 			return elbInfo.Info, &elbInfo.FilterMetrics
@@ -106,7 +106,7 @@ func (exporter *BaseHuaweiCloudExporter) getElbResourceInfo() (map[string][]stri
 			}
 		}
 
-		allListeners, err := getAllListener(exporter.ClientConfig)
+		allListeners, err := getAllListener(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Listener error: %s", err.Error()))
 		}
@@ -169,13 +169,13 @@ func buildPoolMetrics(metricNames []string, elb *loadbalancers.LoadBalancer) []m
 	return filterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getNatResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getNatResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	natInfo.Lock()
 	defer natInfo.Unlock()
 	if natInfo.Info == nil || time.Now().Unix() > natInfo.TTL {
-		allnat, err := getAllNat(exporter.ClientConfig)
+		allnat, err := getAllNat(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Nat error: %s", err.Error()))
 			return natInfo.Info, &natInfo.FilterMetrics
@@ -201,13 +201,13 @@ func (exporter *BaseHuaweiCloudExporter) getNatResourceInfo() (map[string][]stri
 	return natInfo.Info, &natInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getRdsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getRdsResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	rdsInfo.Lock()
 	defer rdsInfo.Unlock()
 	if rdsInfo.Info == nil || time.Now().Unix() > rdsInfo.TTL {
-		allrds, err := getAllRds(exporter.ClientConfig)
+		allrds, err := getAllRds(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Rds error: %s", err.Error()))
 			return rdsInfo.Info, &rdsInfo.FilterMetrics
@@ -245,12 +245,12 @@ func (exporter *BaseHuaweiCloudExporter) getRdsResourceInfo() (map[string][]stri
 	return rdsInfo.Info, &rdsInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getDmsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getDmsResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	dmsInfo.Lock()
 	defer dmsInfo.Unlock()
 	if dmsInfo.Info == nil || time.Now().Unix() > dmsInfo.TTL {
-		allDmsInstance, err := getAllDms(exporter.ClientConfig)
+		allDmsInstance, err := getAllDms(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Dms error: %s", err.Error()))
 			return dmsInfo.Info, &dmsInfo.FilterMetrics
@@ -264,7 +264,7 @@ func (exporter *BaseHuaweiCloudExporter) getDmsResourceInfo() (map[string][]stri
 				fmt.Sprintf("%d", dms.Port)}
 		}
 
-		allQueues, err := getAllDmsQueue(exporter.ClientConfig)
+		allQueues, err := getAllDmsQueue(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Dms Queue error: %s", err.Error()))
 		}
@@ -280,13 +280,13 @@ func (exporter *BaseHuaweiCloudExporter) getDmsResourceInfo() (map[string][]stri
 	return dmsInfo.Info, &dmsInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getDcsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getDcsResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := make(map[string][]string)
 	filterMetrics := make([]metrics.Metric, 0)
 	dcsInfo.Lock()
 	defer dcsInfo.Unlock()
 	if dcsInfo.Info == nil || time.Now().Unix() > dcsInfo.TTL {
-		allDcs, err := getAllDcs(exporter.ClientConfig)
+		allDcs, err := getAllDcs(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Dcs error: %s", err.Error()))
 			return dcsInfo.Info, &dcsInfo.FilterMetrics
@@ -319,12 +319,12 @@ func (exporter *BaseHuaweiCloudExporter) getDcsResourceInfo() (map[string][]stri
 	return dcsInfo.Info, &dcsInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getVpcResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getVpcResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	vpcInfo.Lock()
 	defer vpcInfo.Unlock()
 	if vpcInfo.Info == nil || time.Now().Unix() > vpcInfo.TTL {
-		allPublicIps, err := getAllPublicIp(exporter.ClientConfig)
+		allPublicIps, err := getAllPublicIp(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all PublicIp error: %s", err.Error()))
 		}
@@ -334,7 +334,7 @@ func (exporter *BaseHuaweiCloudExporter) getVpcResourceInfo() (map[string][]stri
 			}
 		}
 
-		allBandwidth, err := getAllBandwidth(exporter.ClientConfig)
+		allBandwidth, err := getAllBandwidth(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Bandwidth error: %s", err.Error()))
 			return resourceInfos, &vpcInfo.FilterMetrics
@@ -351,12 +351,12 @@ func (exporter *BaseHuaweiCloudExporter) getVpcResourceInfo() (map[string][]stri
 	return vpcInfo.Info, &vpcInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getEvsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getEvsResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	evsInfo.Lock()
 	defer evsInfo.Unlock()
 	if evsInfo.Info == nil || time.Now().Unix() > evsInfo.TTL {
-		allVolumes, err := getAllVolume(exporter.ClientConfig)
+		allVolumes, err := getAllVolume(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Volume error: %s", err.Error()))
 			return evsInfo.Info, &evsInfo.FilterMetrics
@@ -378,12 +378,12 @@ func (exporter *BaseHuaweiCloudExporter) getEvsResourceInfo() (map[string][]stri
 	return evsInfo.Info, &evsInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getEcsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getEcsResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	ecsInfo.Lock()
 	defer ecsInfo.Unlock()
 	if ecsInfo.Info == nil || time.Now().Unix() > ecsInfo.TTL {
-		allServers, err := getAllServer(exporter.ClientConfig)
+		allServers, err := getAllServer(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Server error: %s", err.Error()))
 			return ecsInfo.Info, &ecsInfo.FilterMetrics
@@ -402,12 +402,12 @@ func (exporter *BaseHuaweiCloudExporter) getEcsResourceInfo() (map[string][]stri
 	return ecsInfo.Info, &ecsInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getAsResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getAsResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	asInfo.Lock()
 	defer asInfo.Unlock()
 	if asInfo.Info == nil || time.Now().Unix() > asInfo.TTL {
-		allGroups, err := getAllGroup(exporter.ClientConfig)
+		allGroups, err := getAllGroup(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Group error: %s", err.Error()))
 			return asInfo.Info, &asInfo.FilterMetrics
@@ -426,12 +426,12 @@ func (exporter *BaseHuaweiCloudExporter) getAsResourceInfo() (map[string][]strin
 	return asInfo.Info, &asInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getFunctionGraphResourceInfo() (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getFunctionGraphResourceInfo() (map[string][]string, *[]metrics.Metric) {
 	resourceInfos := map[string][]string{}
 	fgsInfo.Lock()
 	defer fgsInfo.Unlock()
 	if fgsInfo.Info == nil || time.Now().Unix() > fgsInfo.TTL {
-		functionList, err := getAllFunction(exporter.ClientConfig)
+		functionList, err := getAllFunction(c.ClientConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Get all Function error: %s", err.Error()))
 			return fgsInfo.Info, &fgsInfo.FilterMetrics
@@ -450,28 +450,28 @@ func (exporter *BaseHuaweiCloudExporter) getFunctionGraphResourceInfo() (map[str
 	return fgsInfo.Info, &fgsInfo.FilterMetrics
 }
 
-func (exporter *BaseHuaweiCloudExporter) getAllResource(namespace string) (map[string][]string, *[]metrics.Metric) {
+func (c *CloudEyeCollector) getAllResource(namespace string) (map[string][]string, *[]metrics.Metric) {
 	switch namespace {
 	case "SYS.ELB":
-		return exporter.getElbResourceInfo()
+		return c.getElbResourceInfo()
 	case "SYS.NAT":
-		return exporter.getNatResourceInfo()
+		return c.getNatResourceInfo()
 	case "SYS.RDS":
-		return exporter.getRdsResourceInfo()
+		return c.getRdsResourceInfo()
 	case "SYS.DMS":
-		return exporter.getDmsResourceInfo()
+		return c.getDmsResourceInfo()
 	case "SYS.DCS":
-		return exporter.getDcsResourceInfo()
+		return c.getDcsResourceInfo()
 	case "SYS.VPC":
-		return exporter.getVpcResourceInfo()
+		return c.getVpcResourceInfo()
 	case "SYS.EVS":
-		return exporter.getEvsResourceInfo()
+		return c.getEvsResourceInfo()
 	case "SYS.ECS":
-		return exporter.getEcsResourceInfo()
+		return c.getEcsResourceInfo()
 	case "SYS.AS":
-		return exporter.getAsResourceInfo()
+		return c.getAsResourceInfo()
 	case "SYS.FunctionGraph":
-		return exporter.getFunctionGraphResourceInfo()
+		return c.getFunctionGraphResourceInfo()
 	default:
 		return map[string][]string{}, &[]metrics.Metric{}
 	}
