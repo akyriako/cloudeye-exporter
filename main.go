@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	cloudConfigFlag  = flag.String("config", "./clouds.yaml", "Path to the cloud configuration file")
-	filterEnableFlag = flag.Bool("filter-enable", false, "Enabling monitoring metric filter")
-	debugFlag        = flag.Bool("debug", false, "If debug the code.")
+	cloudConfigFlag  = flag.String("config", "./clouds.yaml", "path to the cloud configuration file")
+	enableFilterFlag = flag.Bool("enable-filters", false, "enabling monitoring metric filter")
+	debugFlag        = flag.Bool("debug", false, "debug mode")
 
 	logger *slog.Logger
 )
@@ -22,9 +22,9 @@ func main() {
 	flag.Parse()
 
 	initializeLogger()
-	cloudConfig, err := config.GetConfigFromFile(*cloudConfigFlag, *filterEnableFlag)
+	cloudConfig, err := config.GetConfigFromFile(*cloudConfigFlag, *enableFilterFlag)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Parsing cloud config failed: %s", err.Error()))
+		slog.Error(fmt.Sprintf("parsing cloud config failed: %s", err.Error()))
 		return
 	}
 
@@ -33,9 +33,9 @@ func main() {
 	http.HandleFunc("/ping", handlers.Health)
 	http.HandleFunc("/", handlers.Welcome(cloudConfig.Global.MetricsPath))
 
-	slog.Info(fmt.Sprintf("Start server at port%s", cloudConfig.Global.Port))
+	slog.Info("starting server", "port", cloudConfig.Global.Port)
 	if err := http.ListenAndServe(cloudConfig.Global.Port, nil); err != nil {
-		slog.Error(fmt.Sprintf("Error occur when start server %s", err.Error()))
+		slog.Error(fmt.Sprintf("error occur when start server %s", err.Error()))
 		os.Exit(1)
 	}
 }
@@ -46,7 +46,7 @@ func initializeLogger() {
 		levelInfo = slog.LevelDebug
 	}
 
-	logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: levelInfo,
 	}))
 

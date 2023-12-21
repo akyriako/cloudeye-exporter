@@ -66,7 +66,7 @@ func (c *CloudEyeCollector) getELBResourceInfo() (map[string][]string, *[]metric
 	if elbInfo.Info == nil || time.Now().Unix() > elbInfo.TTL {
 		allELBs, err := c.Client.getAllLoadBalancers()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all LoadBalancer error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all load balancers failed: %s", err.Error()))
 			return elbInfo.Info, &elbInfo.FilterMetrics
 		}
 		if allELBs == nil {
@@ -91,7 +91,7 @@ func (c *CloudEyeCollector) getELBResourceInfo() (map[string][]string, *[]metric
 
 		allListeners, err := c.Client.getAllListeners()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Listener error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all listeners failed: %s", err.Error()))
 		}
 		if allListeners != nil {
 			for _, listener := range *allListeners {
@@ -160,7 +160,7 @@ func (c *CloudEyeCollector) getNATResourceInfo() (map[string][]string, *[]metric
 	if natInfo.Info == nil || time.Now().Unix() > natInfo.TTL {
 		allnat, err := c.Client.getAllNatGateways()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Nat error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all NAT gateways failed: %s", err.Error()))
 			return natInfo.Info, &natInfo.FilterMetrics
 		}
 		if allnat == nil {
@@ -192,7 +192,7 @@ func (c *CloudEyeCollector) getRDSResourceInfo() (map[string][]string, *[]metric
 	if rdsInfo.Info == nil || time.Now().Unix() > rdsInfo.TTL {
 		allrds, err := c.Client.getAllRDSs()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Rds error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all RDS instances failed: %s", err.Error()))
 			return rdsInfo.Info, &rdsInfo.FilterMetrics
 		}
 		if allrds == nil {
@@ -235,7 +235,7 @@ func (c *CloudEyeCollector) getDMSResourceInfo() (map[string][]string, *[]metric
 	if dmsInfo.Info == nil || time.Now().Unix() > dmsInfo.TTL {
 		allDmsInstance, err := c.Client.getAllDMSs()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Dms error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all DMS instances failed: %s", err.Error()))
 			return dmsInfo.Info, &dmsInfo.FilterMetrics
 		}
 		if allDmsInstance == nil {
@@ -249,7 +249,7 @@ func (c *CloudEyeCollector) getDMSResourceInfo() (map[string][]string, *[]metric
 
 		allQueues, err := c.Client.getAllDMSQueues()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Dms Queue error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all DMS queues failed: %s", err.Error()))
 		}
 		if allQueues != nil {
 			for _, queue := range *allQueues {
@@ -271,7 +271,7 @@ func (c *CloudEyeCollector) getDCSResourceInfo() (map[string][]string, *[]metric
 	if dcsInfo.Info == nil || time.Now().Unix() > dcsInfo.TTL {
 		allDcs, err := c.Client.getAllDCSs()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Dcs error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all DCS failed: %s", err.Error()))
 			return dcsInfo.Info, &dcsInfo.FilterMetrics
 		}
 		if allDcs == nil {
@@ -309,7 +309,7 @@ func (c *CloudEyeCollector) getVPCResourceInfo() (map[string][]string, *[]metric
 	if vpcInfo.Info == nil || time.Now().Unix() > vpcInfo.TTL {
 		allPublicIps, err := c.Client.getAllPublicIPs()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all PublicIp error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all public ips failed: %s", err.Error()))
 		}
 		if allPublicIps != nil {
 			for _, publicIp := range *allPublicIps {
@@ -319,7 +319,7 @@ func (c *CloudEyeCollector) getVPCResourceInfo() (map[string][]string, *[]metric
 
 		allBandwidth, err := c.Client.getAllBandwidth()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Bandwidth error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all bandwidth failed: %s", err.Error()))
 			return resourceInfos, &vpcInfo.FilterMetrics
 		}
 		if allBandwidth != nil {
@@ -341,7 +341,7 @@ func (c *CloudEyeCollector) getEVSResourceInfo() (map[string][]string, *[]metric
 	if evsInfo.Info == nil || time.Now().Unix() > evsInfo.TTL {
 		allVolumes, err := c.Client.getAllVolumes()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Volume error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all volumes failed: %s", err.Error()))
 			return evsInfo.Info, &evsInfo.FilterMetrics
 		}
 		if allVolumes == nil {
@@ -368,7 +368,7 @@ func (c *CloudEyeCollector) getECSResourceInfo() (map[string][]string, *[]metric
 	if ecsInfo.Info == nil || time.Now().Unix() > ecsInfo.TTL {
 		allServers, err := c.Client.getAllServers()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Server error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all servers failed: %s", err.Error()))
 			return ecsInfo.Info, &ecsInfo.FilterMetrics
 		}
 		if allServers == nil {
@@ -392,7 +392,7 @@ func (c *CloudEyeCollector) getASResourceInfo() (map[string][]string, *[]metrics
 	if asInfo.Info == nil || time.Now().Unix() > asInfo.TTL {
 		allGroups, err := c.Client.getAllAutoscalingGroups()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Group error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all autoscaling groups failed: %s", err.Error()))
 			return asInfo.Info, &asInfo.FilterMetrics
 		}
 		if allGroups == nil {
@@ -416,7 +416,7 @@ func (c *CloudEyeCollector) getFGSResourceInfo() (map[string][]string, *[]metric
 	if fgsInfo.Info == nil || time.Now().Unix() > fgsInfo.TTL {
 		functionList, err := c.Client.getAllFunctions()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Get all Function error: %s", err.Error()))
+			slog.Error(fmt.Sprintf("getting all functions failed: %s", err.Error()))
 			return fgsInfo.Info, &fgsInfo.FilterMetrics
 		}
 		if functionList == nil {

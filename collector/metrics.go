@@ -20,11 +20,11 @@ func (c *CloudEyeCollector) collectMetricsByNamespace(ctx context.Context, ch ch
 
 	allMetrics, allResourcesInfo := c.getAllMetricsAndResourcesByNamespace(namespace)
 	if len(allMetrics) == 0 {
-		slog.Warn(fmt.Sprintf("[%s] Metrics of %s are not found, skip.", c.txnKey, namespace))
+		slog.Warn(fmt.Sprintf("[%s] metrics of %s were not found", c.txnKey, namespace))
 		return
 	}
 
-	slog.Debug(fmt.Sprintf("[%s] Start to scrape metric data", c.txnKey))
+	slog.Debug(fmt.Sprintf("[%s] scraping metric data", c.txnKey))
 	workChan := make(chan struct{}, c.MaxRoutines)
 	defer close(workChan)
 	var wg sync.WaitGroup
@@ -43,7 +43,7 @@ func (c *CloudEyeCollector) collectMetricsByNamespace(ctx context.Context, ch ch
 					wg.Done()
 				}()
 
-				slog.Debug(fmt.Sprintf("[%s] Start to getBatchMetricData, metric count: %d", c.txnKey, len(tmpMetrics)))
+				slog.Debug(fmt.Sprintf("[%s] getting batch metric data, metric count: %d", c.txnKey, len(tmpMetrics)))
 				dataList, err := c.getBatchMetricData(&tmpMetrics, c.From, c.To)
 				if err != nil {
 					return
@@ -55,36 +55,36 @@ func (c *CloudEyeCollector) collectMetricsByNamespace(ctx context.Context, ch ch
 	}
 
 	wg.Wait()
-	slog.Debug(fmt.Sprintf("[%s] End to scrape all metric data", c.txnKey))
+	slog.Debug(fmt.Sprintf("[%s] scraped all metric data", c.txnKey))
 }
 
 func (c *CloudEyeCollector) getAllMetricsAndResourcesByNamespace(namespace string) ([]metrics.Metric, map[string][]string) {
 	allResourcesInfo, filterMetrics := c.getAllResources(namespace)
-	slog.Debug(fmt.Sprintf("[%s] Resource number of %s: %d", c.txnKey, namespace, len(allResourcesInfo)))
+	slog.Debug(fmt.Sprintf("[%s] found %d resources in %s: ", c.txnKey, len(allResourcesInfo), namespace))
 
 	if len(*filterMetrics) > 0 {
 		return *filterMetrics, allResourcesInfo
 	}
 
-	slog.Debug(fmt.Sprintf("[%s] Start to getAllMetric from CES", c.txnKey))
+	slog.Debug(fmt.Sprintf("[%s] collecting all metrics from CES", c.txnKey))
 	allMetrics, err := c.getAllMetrics(namespace)
 	if err != nil {
-		slog.Error(fmt.Sprintf("[%s] Get all metrics error: %s", c.txnKey, err.Error()))
+		slog.Error(fmt.Sprintf("[%s] collecting all metrics failed: %s", c.txnKey, err.Error()))
 		return nil, nil
 	}
-	slog.Debug(fmt.Sprintf("[%s] End to getAllMetric, Total number of of metrics: %d", c.txnKey, len(*allMetrics)))
+	slog.Debug(fmt.Sprintf("[%s] number of collected metrics: %d", c.txnKey, len(*allMetrics)))
 	return *allMetrics, allResourcesInfo
 }
 
 func (c *CloudEyeCollector) getBatchMetricData(metrics *[]metricdata.Metric, from string, to string) (*[]metricdata.MetricData, error) {
 	ifrom, err := strconv.ParseInt(from, 10, 64)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Failed to Parse from: %s", err.Error()))
+		slog.Error(fmt.Sprintf("parse failed: %s", err.Error()))
 		return nil, err
 	}
 	ito, err := strconv.ParseInt(to, 10, 64)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Failed to Parse to: %s", err.Error()))
+		slog.Error(fmt.Sprintf("parse failed: %s", err.Error()))
 		return nil, err
 	}
 	options := metricdata.BatchQueryOpts{
@@ -97,13 +97,13 @@ func (c *CloudEyeCollector) getBatchMetricData(metrics *[]metricdata.Metric, fro
 
 	client, err := c.Client.GetCESClient()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Failed to get ces client: %s", err.Error()))
+		slog.Error(fmt.Sprintf("acquiring a CES client failed: %s", err.Error()))
 		return nil, err
 	}
 
 	v, err := metricdata.BatchQuery(client, options).ExtractMetricDatas()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Failed to get metricdata: %s", err.Error()))
+		slog.Error(fmt.Sprintf("collecting metricdata from batch query failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -113,19 +113,19 @@ func (c *CloudEyeCollector) getBatchMetricData(metrics *[]metricdata.Metric, fro
 func (c *CloudEyeCollector) getAllMetrics(namespace string) (*[]metrics.Metric, error) {
 	client, err := c.Client.GetCESClient()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Get CES client error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("acquiring a CES client failed: %s", err.Error()))
 		return nil, err
 	}
 	limit := 1000
 	allPages, err := metrics.List(client, metrics.ListOpts{Namespace: namespace, Limit: &limit}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Get all metric all pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all metrics pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	v, err := metrics.ExtractAllPagesMetrics(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Get all metric pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all metrics pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -139,19 +139,19 @@ func (c *CloudEyeCollector) pushMetricsData(
 	allResourcesInfo map[string][]string,
 ) {
 	for _, metric := range dataList {
-		dataJson, err := validateMetricData(metric)
+		_, err := validateMetricData(metric)
 		if err != nil {
-			slog.Error(fmt.Sprintf("[%s] Marshal metricData error: %s", c.txnKey, err.Error()))
+			slog.Error(fmt.Sprintf("[%s] validating metric failed: %s", c.txnKey, err.Error()))
 		}
-		slog.Debug(fmt.Sprintf("[%s] Get data points of metric are: %s", c.txnKey, string(dataJson)))
+		//slog.Debug(fmt.Sprintf("[%s] validated metric: %s", c.txnKey, string(dataJson)))
 
 		data, err := getLatestData(metric.Datapoints)
 		if err != nil {
-			slog.Warn(fmt.Sprintf("[%s] Get data point error: %s, metric_name: %s, dimension: %+v", c.txnKey, err.Error(), metric.MetricName, metric.Dimensions))
+			slog.Warn(fmt.Sprintf("[%s] gettig latest data failed: %s, metric_name: %s, dimension: %+v", c.txnKey, err.Error(), metric.MetricName, metric.Dimensions))
 			continue
 		}
 
-		labelInfo, err := c.relabelMetricData(allResourcesInfo, metric)
+		labelInfo, err := relabelMetricData(allResourcesInfo, metric)
 		if err != nil {
 			slog.Error(fmt.Sprintf("[%s] %s", c.txnKey, err.Error()))
 			continue
@@ -162,7 +162,7 @@ func (c *CloudEyeCollector) pushMetricsData(
 			prometheus.NewDesc(fqName, fqName, labelInfo.Labels, nil),
 			prometheus.GaugeValue, data, labelInfo.Values...)
 		if err := pushMetricData(ctx, ch, proMetric); err != nil {
-			slog.Error(fmt.Sprintf("[%s] Context has canceled, no need to send metric data, metric name: %s", c.txnKey, fqName))
+			slog.Error(fmt.Sprintf("[%s] context cancellation detected while push metric: %s", c.txnKey, fqName))
 		}
 	}
 }

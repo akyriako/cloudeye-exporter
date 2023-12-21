@@ -61,7 +61,7 @@ func NewOpenTelekomCloudClient(config *config.CloudConfig) (*OpenTelekomCloudCli
 
 	client, err := buildClient(&clientConfig)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Failed to build client: %s", err.Error()))
+		slog.Error(fmt.Sprintf("acquiring an openstack client failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -201,13 +201,13 @@ func (c *OpenTelekomCloudClient) getAllLoadBalancers() (*[]loadbalancers.LoadBal
 
 	allPages, err := loadbalancers.List(client, loadbalancers.ListOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List load balancer error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all load balancer pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	allLoadBalancers, err := loadbalancers.ExtractLoadBalancers(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract load balancer pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all load balancer pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -222,13 +222,13 @@ func (c *OpenTelekomCloudClient) getAllListeners() (*[]listeners.Listener, error
 
 	allPages, err := listeners.List(client, listeners.ListOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List listener all pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all listener pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	allListeners, err := listeners.ExtractListeners(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract listener pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all listener pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -243,13 +243,13 @@ func (c *OpenTelekomCloudClient) getAllNatGateways() (*[]natgateways.NatGateway,
 
 	allPages, err := natgateways.List(client, natgateways.ListOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List nat gateways error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all NAT gateways pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	allNatGateways, err := natgateways.ExtractNatGateways(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract nat gateway pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all NAT gateways pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -265,13 +265,13 @@ func (c *OpenTelekomCloudClient) getAllRDSs() (*rds.ListRdsResponse, error) {
 	// HACK: Changed to ListOps
 	allPages, err := rds.List(client, rds.ListOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List rds error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all RDS pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	allRds, err := rds.ExtractRdsInstances(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract rds pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all RDS pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -286,13 +286,13 @@ func (c *OpenTelekomCloudClient) getAllDCSs() (*dcs.ListDcsResponse, error) {
 
 	allPages, err := dcs.List(client, dcs.ListDcsInstanceOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List dcs error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all DCS pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	allDcs, err := dcs.ExtractDcsInstances(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract dcs pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all DCS pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -307,13 +307,13 @@ func (c *OpenTelekomCloudClient) getAllDMSs() (*dms.ListDmsResponse, error) {
 
 	allPages, err := dms.List(client, dms.ListDmsInstanceOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List dms instances error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all DMS pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	allDms, err := dms.ExtractDmsInstances(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract dms instances pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all DMS pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -328,13 +328,13 @@ func (c *OpenTelekomCloudClient) getAllDMSQueues() (*[]queues.Queue, error) {
 
 	allPages, err := queues.List(client, false).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List dms queues error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all DMS queues pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	allQueues, err := queues.ExtractQueues(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract dms queues pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all DMS queues pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -352,13 +352,13 @@ func (c *OpenTelekomCloudClient) getAllPublicIPs() (*[]publicips.PublicIP, error
 	}).AllPages()
 
 	if err != nil {
-		slog.Error(fmt.Sprintf("List public ips error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all public ip pages failed: %s", err.Error()))
 		return nil, err
 	}
 	publicipList, err1 := publicips.ExtractPublicIPs(allPages)
 
 	if err1 != nil {
-		slog.Error(fmt.Sprintf("Extract public ips pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all public ip pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -375,13 +375,13 @@ func (c *OpenTelekomCloudClient) getAllBandwidth() (*[]bandwidths.BandWidth, err
 		Limit: 1000,
 	}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List bandwidths error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all bandwith pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := bandwidths.ExtractBandWidths(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract bandwidths all pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all bandwidth pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -398,13 +398,13 @@ func (c *OpenTelekomCloudClient) getAllVolumes() (*[]volumes.Volume, error) {
 		Limit: 1000,
 	}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List volumes error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all volume pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := volumes.ExtractVolumes(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract volumes all pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all volume pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -421,13 +421,13 @@ func (c *OpenTelekomCloudClient) getAllServers() (*[]servers.Server, error) {
 		Limit: 1000,
 	}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List servers error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all server pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := servers.ExtractServers(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract servers all pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all server pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -442,13 +442,13 @@ func (c *OpenTelekomCloudClient) getAllAutoscalingGroups() (*[]groups.Group, err
 
 	allPages, err := groups.List(client, groups.ListOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List groups error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all autoscaling group pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := (allPages.(groups.GroupPage)).Extract()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract groups all pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all autoscaling group pages failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -463,13 +463,13 @@ func (c *OpenTelekomCloudClient) getAllFunctions() (*function.FunctionList, erro
 
 	allPages, err := function.List(client, function.ListOpts{}).AllPages()
 	if err != nil {
-		slog.Error(fmt.Sprintf("List function error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("getting all function pages failed: %s", err.Error()))
 		return nil, err
 	}
 
 	result, err := function.ExtractList(allPages)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Extract function all pages error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("extracting all function pages failed: %s", err.Error()))
 		return nil, err
 	}
 

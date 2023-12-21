@@ -48,7 +48,7 @@ func (c *CloudEyeCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *CloudEyeCollector) Collect(ch chan<- prometheus.Metric) {
 	duration, err := time.ParseDuration("-10m")
 	if err != nil {
-		slog.Error(fmt.Sprintf("ParseDuration -10m error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("parse duration -10m error: %s", err.Error()))
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -59,7 +59,7 @@ func (c *CloudEyeCollector) Collect(ch chan<- prometheus.Metric) {
 	c.To = strconv.FormatInt(now.UnixNano()/1e6, 10)
 	c.txnKey = fmt.Sprintf("%s-%s-%s", strings.Join(c.Namespaces, "-"), c.From, c.To)
 
-	slog.Debug(fmt.Sprintf("[%s] Start to collect data", c.txnKey))
+	slog.Debug(fmt.Sprintf("[%s] start collecting data", c.txnKey))
 	var wg sync.WaitGroup
 	for _, namespace := range c.Namespaces {
 		wg.Add(1)
@@ -69,5 +69,5 @@ func (c *CloudEyeCollector) Collect(ch chan<- prometheus.Metric) {
 		}(ctx, ch, namespace)
 	}
 	wg.Wait()
-	slog.Debug(fmt.Sprintf("[%s] End to collect data", c.txnKey))
+	slog.Debug(fmt.Sprintf("[%s] end collecting data", c.txnKey))
 }
