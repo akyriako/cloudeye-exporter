@@ -13,6 +13,7 @@ import (
 )
 
 type CloudEyeExporter struct {
+	sync.RWMutex
 	From            string
 	To              string
 	Namespaces      []string
@@ -47,6 +48,9 @@ func (c *CloudEyeExporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *CloudEyeExporter) Collect(ch chan<- prometheus.Metric) {
+	c.Lock()
+	defer c.Unlock()
+
 	duration, err := time.ParseDuration("-10m")
 	if err != nil {
 		slog.Error(fmt.Sprintf("parse duration -10m error: %s", err.Error()))
