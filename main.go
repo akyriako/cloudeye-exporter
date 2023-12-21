@@ -4,7 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/akyriako/cloudeye-exporter/collector"
-	"github.com/akyriako/cloudeye-exporter/logging"
+	"github.com/akyriako/cloudeye-exporter/config"
+	"github.com/akyriako/cloudeye-exporter/handlers"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
@@ -14,50 +15,46 @@ import (
 )
 
 var (
-	clientConfig = flag.String("config", "./clouds.yaml", "Path to the cloud configuration file")
-	filterEnable = flag.Bool("filter-enable", false, "Enabling monitoring metric filter")
-	debug        = flag.Bool("debug", false, "If debug the code.")
+	cloudConfigFlag  = flag.String("config", "./clouds.yaml", "Path to the cloud configuration file")
+	filterEnableFlag = flag.Bool("filter-enable", false, "Enabling monitoring metric filter")
+	debugFlag        = flag.Bool("debug", false, "If debug the code.")
+
+	logger *slog.Logger
 )
 
 func main() {
 	flag.Parse()
-	logging.InitializeDefaultLogger(*debug)
-	cloudConfig, err := collector.NewCloudConfigFromFile(*clientConfig)
+
+	initializeLogger()
+	cloudConfig, err := config.GetConfigFromFile(*cloudConfigFlag, *filterEnableFlag)
 	if err != nil {
-		slog.Error(fmt.Sprintf("New Cloud Config From File error: %s", err.Error()))
-		return
-	}
-	err = collector.InitFilterConfig(*filterEnable)
-	if err != nil {
-		slog.Error(fmt.Sprintf("Init filter Config error: %s", err.Error()))
+		slog.Error(fmt.Sprintf("Parsing cloud config failed: %s", err.Error()))
 		return
 	}
 
-	metricsPath := cloudConfig.Global.MetricPath
-
-	http.HandleFunc(metricsPath, metrics)
-	http.HandleFunc("/health", health)
-	http.HandleFunc("/ping", health)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
-             <head><title>Open Telekom Cloud CloudEye Exporter</title></head>
-             <body>
-             <h1>Open Telekom Cloud CloudEye Exporter</h1>
-             <p><a href='` + metricsPath + "?services=SYS.ELB" + `'>ELB Metrics</a></p>
-             <p><a href='` + metricsPath + "?services=SYS.RDS" + `'>RDS Metrics</a></p>
-             <p><a href='` + metricsPath + "?services=SYS.DCS" + `'>DCS Metrics</a></p>
-             <p><a href='` + metricsPath + "?services=SYS.NAT" + `'>NAT Metrics</a></p>
-             <p><a href='` + metricsPath + "?services=SYS.VPC" + `'>VPC Metrics</a></p>
-             <p><a href='` + metricsPath + "?services=SYS.ECS" + `'>ECS Metrics</a></p>
-             </body>
-             </html>`))
-	})
+	http.HandleFunc(cloudConfig.Global.MetricsPath, handlers.Metrics(*cloudConfigFlag))
+	http.HandleFunc("/health", handlers.Health)
+	http.HandleFunc("/ping", handlers.Health)
+	http.HandleFunc("/", handlers.Welcome(cloudConfig.Global.MetricsPath))
 
 	slog.Info(fmt.Sprintf("Start server at port%s", cloudConfig.Global.Port))
 	if err := http.ListenAndServe(cloudConfig.Global.Port, nil); err != nil {
 		slog.Error(fmt.Sprintf("Error occur when start server %s", err.Error()))
 		os.Exit(1)
 	}
+}
+
+func initializeLogger() {
+	levelInfo := slog.LevelInfo
+	if *debugFlag {
+		levelInfo = slog.LevelDebug
+	}
+
+	logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: levelInfo,
+	}))
+
+	slog.SetDefault(logger)
 }
 
 func metrics(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +68,7 @@ func metrics(w http.ResponseWriter, r *http.Request) {
 	registry := prometheus.NewRegistry()
 
 	slog.Info(fmt.Sprintf("Start to monitor services: %s", targets))
-	exporter, err := collector.GetMonitoringCollector(*clientConfig, targets)
+	exporter, err := collector.GetMonitoringCollector(*cloudConfigFlag, targets)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, err := w.Write([]byte(err.Error()))

@@ -3,6 +3,7 @@ package collector
 import (
 	"errors"
 	"fmt"
+	"github.com/akyriako/cloudeye-exporter/config"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -137,7 +138,7 @@ func genClient(c *Config, ao golangsdk.AuthOptionsProvider) (*golangsdk.Provider
 	return client, nil
 }
 
-func InitConfig(config *CloudConfig) (*Config, error) {
+func InitConfig(config *config.CloudConfig) (*Config, error) {
 	auth := config.Auth
 	configOptions := Config{
 		IdentityEndpoint: auth.AuthURL,

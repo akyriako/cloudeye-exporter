@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"github.com/akyriako/cloudeye-exporter/config"
 	"log/slog"
 	"strings"
 	"sync"
@@ -88,7 +89,7 @@ func (exporter *BaseHuaweiCloudExporter) getElbResourceInfo() (map[string][]stri
 		if allELBs == nil {
 			return elbInfo.Info, &elbInfo.FilterMetrics
 		}
-		configMap := getMetricConfigMap("SYS.ELB")
+		configMap := config.GetMetricFilters("SYS.ELB")
 		for _, elb := range *allELBs {
 			resourceInfos[elb.ID] = []string{elb.Name, elb.Provider, elb.VipAddress}
 			if configMap == nil {
@@ -182,7 +183,7 @@ func (exporter *BaseHuaweiCloudExporter) getNatResourceInfo() (map[string][]stri
 		if allnat == nil {
 			return natInfo.Info, &natInfo.FilterMetrics
 		}
-		configMap := getMetricConfigMap("SYS.NAT")
+		configMap := config.GetMetricFilters("SYS.NAT")
 		for _, nat := range *allnat {
 			resourceInfos[nat.ID] = []string{nat.Name}
 			if configMap == nil {
@@ -214,7 +215,7 @@ func (exporter *BaseHuaweiCloudExporter) getRdsResourceInfo() (map[string][]stri
 		if allrds == nil {
 			return rdsInfo.Info, &rdsInfo.FilterMetrics
 		}
-		configMap := getMetricConfigMap("SYS.RDS")
+		configMap := config.GetMetricFilters("SYS.RDS")
 		for _, rds := range allrds.Instances {
 			resourceInfos[rds.Id] = []string{rds.Name}
 			for _, node := range rds.Nodes {
@@ -293,7 +294,7 @@ func (exporter *BaseHuaweiCloudExporter) getDcsResourceInfo() (map[string][]stri
 		if allDcs == nil {
 			return dcsInfo.Info, &dcsInfo.FilterMetrics
 		}
-		configMap := getMetricConfigMap("SYS.DCS")
+		configMap := config.GetMetricFilters("SYS.DCS")
 		for _, dcs := range allDcs.Instances {
 			resourceInfos[dcs.InstanceID] = []string{dcs.IP, fmt.Sprintf("%d", dcs.Port), dcs.Name, dcs.Engine}
 			if configMap == nil {
