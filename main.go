@@ -18,6 +18,11 @@ var (
 	logger *slog.Logger
 )
 
+const (
+	exitCodeConfigurationError  int = 1
+	exitCodeListenAndServeError int = 2
+)
+
 func main() {
 	flag.Parse()
 
@@ -25,7 +30,7 @@ func main() {
 	cloudConfig, err := config.GetConfigFromFile(*cloudConfigFlag, *enableFilterFlag)
 	if err != nil {
 		slog.Error(fmt.Sprintf("parsing cloud config failed: %s", err.Error()))
-		return
+		os.Exit(exitCodeConfigurationError)
 	}
 
 	http.HandleFunc(cloudConfig.Global.MetricsPath, handlers.Metrics(cloudConfig))
@@ -36,7 +41,7 @@ func main() {
 	slog.Info(fmt.Sprintf("listening at 0.0.0.0%s%s", cloudConfig.Global.Port, cloudConfig.Global.MetricsPath))
 	if err := http.ListenAndServe(cloudConfig.Global.Port, nil); err != nil {
 		slog.Error(fmt.Sprintf("error occur when start server %s", err.Error()))
-		os.Exit(1)
+		os.Exit(exitCodeListenAndServeError)
 	}
 }
 
