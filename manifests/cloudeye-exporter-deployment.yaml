@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudeye-exporter
+  namespace: default
+  labels:
+    app: cloudeye-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudeye-exporter
+  template:
+    metadata:
+      name: cloudeye-exporter
+      labels:
+        app: cloudeye-exporter
+    spec:
+      containers:
+        - name: cloudeye-exporter
+          image: akyriako78/cloudeye-exporter:e53fa31f-1-3
+          command:
+            - "/layers/google.go.build/bin/main"
+          args:
+            - "--debug"
+            - "false"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8087
+              name: metrics
+          volumeMounts:
+            - name: clouds-secret-volume
+              mountPath: /workspace/clouds.yaml
+              subPath: clouds.yaml
+      restartPolicy: Always
+      volumes:
+        - name: clouds-secret-volume
+          secret:
+            secretName: cloudeye-exporter-clouds
+      
