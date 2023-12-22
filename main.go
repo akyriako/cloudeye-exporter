@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var (
@@ -29,7 +30,13 @@ func main() {
 	initializeLogger()
 	cloudConfig, err := config.GetConfigFromFile(*cloudConfigFlag, *enableFilterFlag)
 	if err != nil {
-		slog.Error(fmt.Sprintf("parsing cloud config failed: %s", err.Error()))
+		wd, wderr := os.Getwd()
+		if wderr != nil {
+			slog.Error(fmt.Sprintf("parsing cloud config failed: %s", wderr.Error()))
+			os.Exit(exitCodeConfigurationError)
+		}
+
+		slog.Error(fmt.Sprintf("parsing cloud config at %s%s failed: %s", wd, strings.Trim(*cloudConfigFlag, "."), err.Error()))
 		os.Exit(exitCodeConfigurationError)
 	}
 
