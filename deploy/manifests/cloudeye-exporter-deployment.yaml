@@ -21,9 +21,8 @@ spec:
           image: akyriako78/cloudeye-exporter:1be2cc3a-1-6
           command:
             - "/layers/google.go.build/bin/main"
-          args:
-            - "--debug"
-            - "false"
+#          args:
+#            - "-debug"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8087
