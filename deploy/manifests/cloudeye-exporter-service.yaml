@@ -8,13 +8,15 @@ metadata:
     prometheus.io/scrape: 'true'
     prometheus.io/path: "/metrics"
     prometheus.io/scheme: "http"
+  labels:
+    app: cloudeye-exporter
 spec:
   selector:
     app: cloudeye-exporter
   ports:
-    - protocol: TCP
+    - name: metrics
+      protocol: TCP
       port: 8087
       targetPort: 8087
-      name: metrics
   type: ClusterIP
   

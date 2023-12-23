@@ -18,13 +18,13 @@ spec:
     spec:
       containers:
         - name: cloudeye-exporter
-          image: akyriako78/cloudeye-exporter:21f0d64a-1-4
+          image: akyriako78/cloudeye-exporter:1be2cc3a-1-6
           command:
             - "/layers/google.go.build/bin/main"
           args:
             - "--debug"
             - "false"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8087
               name: metrics

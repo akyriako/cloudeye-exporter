@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cloudeye-exporter
+  namespace: monitoring
+  labels:
+    app: cloudeye-exporter
+    release: kube-prometheus-stack
+spec:
+  endpoints:
+    - port: metrics
+      path: "/metrics"
+      scheme: "http"
+      scrapeTimeout: 14s
+      interval: 15s
+      params:
+        services:
+          - SYS.ELB
+  namespaceSelector:
+    matchNames:
+      - default
+  selector:
+    matchLabels:
+      app: cloudeye-exporter
