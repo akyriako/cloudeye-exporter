@@ -75,7 +75,7 @@ func buildClient(c *ClientConfig) (*OpenTelekomCloudClient, error) {
 		return buildClientByPassword(c)
 	}
 
-	return nil, errors.New("Must config token or aksk or username password to be authorized")
+	return nil, errors.New("a config token or an ak/sk pair or username/password credentials required")
 }
 
 func buildClientByPassword(c *ClientConfig) (*OpenTelekomCloudClient, error) {
