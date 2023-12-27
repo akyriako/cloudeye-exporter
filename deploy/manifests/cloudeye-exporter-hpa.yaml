@@ -1,0 +1,24 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Object
+      object:
+        metric:
+          name: opentelekomcloud_sys_elb_listener_m7_in_Bps
+        describedObject:
+          apiVersion: v1
+          kind: Service
+          name: cloudeye-exporter
+        target:
+          type: Value
+          value: 1000

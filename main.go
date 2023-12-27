@@ -41,8 +41,9 @@ func main() {
 	}
 
 	http.HandleFunc(cloudConfig.Global.MetricsPath, handlers.Metrics(cloudConfig))
-	http.HandleFunc("/health", handlers.Health)
-	http.HandleFunc("/ping", handlers.Health)
+	http.HandleFunc("/healthz", handlers.Health)
+	http.HandleFunc("/livez", handlers.Health)
+	http.HandleFunc("/readyz", handlers.Health)
 	http.HandleFunc("/", handlers.Welcome(cloudConfig.Global.MetricsPath))
 
 	slog.Info(fmt.Sprintf("listening at 0.0.0.0%s%s", cloudConfig.Global.Port, cloudConfig.Global.MetricsPath))
