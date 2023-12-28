@@ -1,4 +1,4 @@
-# Kubernetes Installation
+# CCE Installation
 
 These are the instructions of installing and configuring cloudeye-exporter on an Open Telekom Cloud CCE cluster.
 

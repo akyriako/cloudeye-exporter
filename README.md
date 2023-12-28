@@ -37,5 +37,5 @@ auth:
   region: "{region}"
 ```
 
-## Kubernetes Installation
+## CCE Installation
 Consult the instructions in [README.md](deploy%2FREADME.md).
