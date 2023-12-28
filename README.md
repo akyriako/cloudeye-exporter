@@ -1,6 +1,6 @@
 # cloudeye-exporter
 
-Prometheus cloudeye exporter for [Open Telekom Cloud](https://www.open-telekom-cloud.com/en).
+A custom Prometheus exporter that collects metrics from [Open Telekom Cloud](https://www.open-telekom-cloud.com/en) CloudEye service.
 
 ## Usage
 ```
