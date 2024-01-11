@@ -44,6 +44,9 @@ export ELB_ID="66872*****"
 Next, we are going to install the Nginx Ingress Controller using the script `deploy/manifests/install-ingress.sh`:
 
 ```shell
+envsubst < nginx-ingress-controller/override.tpl > nginx-ingress-controller/override.yaml
+sleep 15
+
 helm upgrade --install -f nginx-ingress-controller/override.yaml --install ingress-nginx ingress-nginx \
 --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
 ```
@@ -74,6 +77,9 @@ custom metrics api endpoint that will bind our custom CloudEye metrics with HPA.
 get the Elastic Load Balancer Listener's ID from your Open Telekom Cloud Console and replace the value in `deploy/manifests/install-adapter.sh`:
 
 ```shell
+envsubst < prometheus-adapter/override.tpl > prometheus-adapter/override.yaml
+sleep 15
+
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
