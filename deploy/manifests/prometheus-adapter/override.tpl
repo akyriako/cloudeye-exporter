@@ -130,13 +130,13 @@ rules:
   default: true
 
   custom:
-    - seriesQuery: '{lbaas_listener_id="94424*****"}'
+    - seriesQuery: '{lbaas_listener_id="${ELB_LISTENER_ID}"}'
+      namespaced: false
       resources:
         overrides:
-          kubernetes_namespace:
-            resource: namespace
-          kubernetes_service:
-            resource: service
+          target_namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+          service: {resource: "service"}
       name:
         matches: opentelekomcloud_sys_elb_(.*)
         as: "elb01_${1}"

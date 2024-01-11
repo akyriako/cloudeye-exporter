@@ -16,9 +16,14 @@ spec:
       params:
         services:
           - SYS.ELB
+      metricRelabelings:
+        - sourceLabels: [namespace]
+          regex: '(.*)'
+          replacement: applications
+          targetLabel: target_namespace
   namespaceSelector:
     matchNames:
-      - default
+      - monitoring
   selector:
     matchLabels:
       app: cloudeye-exporter

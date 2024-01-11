@@ -7,7 +7,7 @@ These are the instructions of installing and configuring cloudeye-exporter on an
 Fill in the `cloud.tpl` template with your own values, and the encode it in base64 with the following command:
 
 ```shell
- base64 -i clouds.tpl -o clouds.yaml
+ base64 -i clouds.tpl 
 ```
 
 Take the encoded contents and replace the value of `clouds.yaml` in `deploy/manifests/cloudeye-exporter-clouds-secret.yaml`:
@@ -33,12 +33,39 @@ to figure out the changes.
 Run `./deploy/manifests/install.sh`. This script will deploy, besides the kube-prometheus-stack, all the cloudeye-exporter 
 related artefacts.
 
-## Install nginx demo workload
+## Export the Elastic Load Balancer's ID as an env variable
+
+```shell
+export ELB_ID="66872*****"
+```
+
+## Install Nginx Ingress Controller
+
+Next, we are going to install the Nginx Ingress Controller using the script `deploy/manifests/install-ingress.sh`:
+
+```shell
+helm upgrade --install -f nginx-ingress-controller/override.yaml --install ingress-nginx ingress-nginx \
+--repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
+```
+
+## Install an Nginx Demo Workload
 
 We are going to need a workload to test HPA and the autoscaling via our custom CloudEye derived metrics. For that matter
-we will deploy a dummy nginx deployment and service:
+we will deploy a dummy nginx deployment and service using the script `deploy/manifests/install-workload.sh`:
 
-`kubectl apply -f deploy/manifests/nginx-deployment.yaml`
+```shell
+kubectl create namespace applications
+kubectl apply -f deploy/manifests/nginx-deployment.yaml
+kubectl apply -f deploy/manifests/nginx-ingress.yaml
+```
+
+## Export the Elastic Load Balancer Listener's ID as an env variable
+
+Choose the listener that corresponds to **port 80**, and copy the ID value:
+
+```shell
+export ELB_LISTENER_ID="94424*****"
+```
 
 ## Install prometheus-adapter
 
@@ -47,12 +74,8 @@ custom metrics api endpoint that will bind our custom CloudEye metrics with HPA.
 get the Elastic Load Balancer Listener's ID from your Open Telekom Cloud Console and replace the value in `deploy/manifests/install-adapter.sh`:
 
 ```shell
-#!/bin/bash
-
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-
-export $ELB_LISTENER_ID = "94424*****"
 
 helm upgrade --install --values prometheus-adapter/override.yaml prometheus-adapter prometheus-community/prometheus-adapter -n monitoring
 ```
@@ -60,10 +83,12 @@ helm upgrade --install --values prometheus-adapter/override.yaml prometheus-adap
 The configuration values used for the prometheus-adapter chart can be found at `deploy/manifests/prometheus-adapter/override.yaml`.
 You could diff them with the default values `default.yaml` to figure out the changes.
 
-## Stress-test nginx workload
+## Stress-test the Nginx Demo Workload
 
-**Please fill in**
-
+```shell
+export ELB_ELASTIC_IP=80.xxx.xxx.xxx
+while true; do wget -q -O- https://${ELB_ELASTIC_IP}/; done
+```
 
 
 
