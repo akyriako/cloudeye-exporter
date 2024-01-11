@@ -4,10 +4,11 @@ These are the instructions of installing and configuring cloudeye-exporter on an
 
 ## Encode clouds.yaml in base64 and insert value in Secret
 
-Fill in the `cloud.tpl` template with your own values, and the encode it in base64 with the following command:
+Create a copy of `clouds.tpl` template, name it `clouds.yaml` and fill it in with your own values, then encode it to 
+base64 with the following command:
 
 ```shell
- base64 -i clouds.tpl 
+ base64 -i clouds.yaml 
 ```
 
 Take the encoded contents and replace the value of `clouds.yaml` in `deploy/manifests/cloudeye-exporter-clouds-secret.yaml`:
