@@ -127,12 +127,11 @@ readinessProbe:
 startupProbe: {}
 
 rules:
-  default: true
-
+  # default: false
   custom:
     - seriesQuery: '{lbaas_listener_id="${ELB_LISTENER_ID}"}'
-      namespaced: false
       resources:
+        namespaced: false
         overrides:
           target_namespace: {resource: "namespace"}
           pod: {resource: "pod"}
